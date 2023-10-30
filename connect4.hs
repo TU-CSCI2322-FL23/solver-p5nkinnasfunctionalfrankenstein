@@ -18,6 +18,13 @@ testGame = [[0,0,0,0,0,0,0],
             [0,0,0,1,0,0,0],
             [0,0,0,2,0,0,0],
             [0,0,0,1,0,0,0]]
+testGame2 :: Game
+testGame2 = [[0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,2,0,0,0],
+            [0,0,0,1,2,0,0],
+            [0,0,0,2,2,2,0],
+            [0,0,0,1,1,1,2]]
 
 
 makeGame :: Int -> Int -> Game
@@ -38,9 +45,10 @@ changeDeepestEmpty :: Game -> Int -> Int -> Int -> Game
 changeDeepestEmpty gm n depth ply = if depth == 0 then gm else changeDeepestEmpty (init gm) n (depth-1) ply
 
 makeMove :: Int -> Game -> Player -> Game
-makeMove n gm ply = changeDeepestEmpty gm n (getDeepestEmpty gm n (length gm)) (playerToInt ply)
+makeMove n gm ply = if n > length (head gm) || n < 1 then gm else function
     where playerToInt Red = 1
           playerToInt Black = 2
+          function = changeDeepestEmpty gm n (getDeepestEmpty gm n (length gm)) (playerToInt ply)
   
 
     
