@@ -9,6 +9,16 @@ type Game =  [[Int]]
     -- needed fuctions 
     -- make game - input board size
     -- make move - input int
+
+testGame :: Game
+testGame = [[0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0],
+            [0,0,0,2,0,0,0],
+            [0,0,0,1,0,0,0],
+            [0,0,0,2,0,0,0],
+            [0,0,0,1,0,0,0]]
+
+
 makeGame :: Int -> Int -> Game
 makeGame n m = [[0 | x <- [1..n]] | y <- [1..m]]
 
@@ -42,6 +52,27 @@ gameToString gm = unlines (map (map intToChar) gm)
 displayGame :: Game -> IO ()
 displayGame gm = putStrLn (gameToString gm)
 
+switchPlayer :: Player -> Player
+switchPlayer Red = Black
+switchPlayer Black = Red
+
+playGame :: Game -> Player -> IO ()
+playGame gm ply = do
+    displayGame gm
+    putStrLn "Enter a column number to make a move"
+    col <- getLine
+    let newGm = makeMove (read col) gm ply
+    displayGame newGm
+    playGame newGm (switchPlayer ply)
+
+main :: IO ()
+main = do
+    putStrLn "Enter the number of rows"
+    rows <- getLine
+    putStrLn "Enter the number of columns"
+    cols <- getLine
+    let gm = makeGame (read rows) (read cols)
+    playGame gm Red
 
 
 
