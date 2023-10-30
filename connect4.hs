@@ -1,3 +1,4 @@
+import Data.ByteString (find)
 
 
 --data Board =  -- board size
@@ -11,8 +12,26 @@ type Game =  [[Int]]
 makeGame :: Int -> Int -> Game
 makeGame n m = [[0 | x <- [1..n]] | y <- [1..m]]
 
-makeMove :: Int -> Game -> Game
-makeMove n gm = undefined
+getElemAtDex :: [Int] -> Int -> Int
+getElemAtDex row 1 = head row
+getElemAtDex row n = getElemAtDex (tail row) (n-1)
+
+checkIfEmptyInRow :: [Int] -> Int -> Bool
+checkIfEmptyInRow row n = getElemAtDex row n == 0
+
+getDeepestEmpty :: Game -> Int -> Int -> Int
+getDeepestEmpty gm n depth = if elem == 0 then depth else getDeepestEmpty (init gm) n (depth-1)
+    where elem = getElemAtDex (last gm) n
+
+changeDeepestEmpty :: Game -> Int -> Int -> Int -> Game
+changeDeepestEmpty gm n depth ply = if depth == 0 then gm else changeDeepestEmpty (init gm) n (depth-1) ply
+
+makeMove :: Int -> Game -> Player -> Game
+makeMove n gm ply = changeDeepestEmpty gm n (getDeepestEmpty gm n (length gm)) (playerToInt ply)
+    where playerToInt Red = 1
+          playerToInt Black = 2
+  
+
     
 gameToString :: Game -> String
 gameToString gm = unlines (map (map intToChar) gm)
@@ -23,9 +42,6 @@ gameToString gm = unlines (map (map intToChar) gm)
 displayGame :: Game -> IO ()
 displayGame gm = putStrLn (gameToString gm)
 
---makeGame :: Int -> Game
---makeGame n = [[0 | x <- [1..n]] | y <- [1..n]]
---
 
 
 
