@@ -44,7 +44,7 @@ getDeepestEmpty gm n depth = if elem == 0 then depth else getDeepestEmpty (init 
 changeDeepestEmpty :: Game -> Int -> Int -> Int -> Game
 changeDeepestEmpty gm n depth ply = if depth == 0 then gm else changeDeepestEmpty (init gm) n (depth-1) ply
 
-makeMove :: Int -> Game -> Player -> Game
+makeMove :: Int -> Game -> Player -> Game --this does not work as expected
 makeMove n gm ply = if n > length (head gm) || n < 1 then gm else function
     where playerToInt Red = 1
           playerToInt Black = 2
