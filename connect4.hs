@@ -108,7 +108,12 @@ main = do
     let gm = makeGame (read rows) (read cols)
     playGame gm Red
 
-
-
+-- main that uses constant number of rows and columns 
+-- main :: IO ()
+-- main = do
+--     let rows = 6
+--         cols = 7
+--         gm = makeGame rows cols
+--     playGame gm Red
 
 
