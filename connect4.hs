@@ -1,94 +1,70 @@
-import Data.ByteString (find)
-import Control.Concurrent.STM (check)
 
 
 --data Board =  -- board size
-data Player = Red | Black deriving (Show, Eq)
-type Game =  [[Int]]
+data Player = Red | Black | Empty deriving (Show, Eq)
+type Game = [[Player]]
 
-
-    -- needed fuctions 
-    -- make game - input board size
-    -- make move - input int
 
 testGame :: Game
-testGame = [[0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,2,0,0,0],
-            [0,0,0,1,0,0,0],
-            [0,0,0,2,0,0,0],
-            [0,0,0,1,0,0,0]]
+testGame = [[Empty,Empty,Empty,Empty,Empty,Empty,Empty],
+            [Empty,Empty,Empty,Empty,Empty,Empty,Empty],
+            [Empty,Empty,Empty,Black,Empty,Empty,Empty],
+            [Empty,Empty,Empty,Red,Empty,Empty,Empty],
+            [Empty,Empty,Empty,Black,Empty,Empty,Empty],
+            [Empty,Empty,Empty,Red,Empty,Empty,Empty]]
+
 testGame2 :: Game
-testGame2 = [[0,0,0,0,0,0,0],
-            [0,0,0,0,0,0,0],
-            [0,0,0,2,0,0,0],
-            [0,0,0,1,2,0,0],
-            [0,0,0,2,2,2,0],
-            [0,0,0,1,1,1,2]]
+testGame2 = [[Empty,Empty,Empty,Empty,Empty,Empty,Empty],
+            [Empty,Empty,Empty,Empty,Empty,Empty,Empty],
+            [Empty,Empty,Empty,Black,Empty,Empty,Empty],
+            [Empty,Empty,Empty,Red,Black,Empty,Empty],
+            [Empty,Empty,Empty,Black,Black,Black,Empty],
+            [Empty,Empty,Empty,Red,Red,Red,Black]]
 
 
 makeGame :: Int -> Int -> Game
-makeGame n m = [[0 | x <- [1..n]] | y <- [1..m]]
+makeGame n m = [[Empty | x <- [1..n]] | y <- [1..m]]
 
-getElemAtDex :: [Int] -> Int -> Int
-getElemAtDex row 1 = head row
-getElemAtDex row n = getElemAtDex (tail row) (n-1)
+findLastEmpty :: [Player] -> Int
+findLastEmpty col = if elem == Empty then length col else findLastEmpty (init col)
+    where elem = last col
+changeLastEmpty :: [Player] -> Player -> [Player]
+changeLastEmpty col ply = if last col == Empty then (init col) ++ [ply] else changeLastEmpty (init col) ply
 
-checkIfEmptyInRow :: [Int] -> Int -> Bool
-checkIfEmptyInRow row n = getElemAtDex row n == 0
+playerToChar :: Player -> Char
+playerToChar Red = 'R'
+playerToChar Black = 'B'
 
-getDeepestEmpty :: Game -> Int -> Int -> Int
-getDeepestEmpty gm n depth = if elem == 0 then depth else getDeepestEmpty (init gm) n (depth-1)
-    where elem = getElemAtDex (last gm) n
+findColNum :: Game -> Int -> [Player]
+findColNum gm n = if n == 1 then head gm else findColNum (tail gm) (n-1)
 
-changeDeepestEmpty :: Game -> Int -> Int -> Int -> Game
-changeDeepestEmpty gm n depth ply = if depth == 0 then gm else changeDeepestEmpty (init gm) n (depth-1) ply
-
-makeMove :: Int -> Game -> Player -> Game --this does not work as expected
+makeMove :: Int -> Game -> Player -> Game
 makeMove n gm ply = if n > length (head gm) || n < 1 then gm else function
-    where playerToInt Red = 1
-          playerToInt Black = 2
-          function = changeDeepestEmpty gm n (getDeepestEmpty gm n (length gm)) (playerToInt ply)
-  
+    where function = (init gm) ++ [changeLastEmpty (findColNum gm n) ply]
 
-    
-gameToString :: Game -> String
-gameToString gm = unlines (map (map intToChar) gm)
-    where intToChar 0 = '.'
-          intToChar 1 = 'R'
-          intToChar 2 = 'B'
+
+rotateGame :: Game -> Game
+rotateGame gm = if length (head gm) == 0 then [] else (map last gm) : rotateGame (map init gm)
 
 displayGame :: Game -> IO ()
-displayGame gm = putStrLn (gameToString gm)
+displayGame gm = rotateGame gm >>= putStrLn . map playerToChar
 
 switchPlayer :: Player -> Player
 switchPlayer Red = Black
 switchPlayer Black = Red
 
--- still working on checkWinRow/Col/Diag
-
-checkWinRow :: Game -> Player -> Bool
-checkWinRow gm ply = any (== True) (map (checkWinRow' ply) gm)
-    where checkWinRow' ply row = any (== True) (map (checkWinRow'' ply row) [1..length row])
-          checkWinRow'' ply row n = getElemAtDex row n == playerToInt ply && getElemAtDex row (n+1) == playerToInt ply && getElemAtDex row (n+2) == playerToInt ply && getElemAtDex row (n+3) == playerToInt ply
-          playerToInt Red = 1
-          playerToInt Black = 2
-checkWinCol :: Game -> Player -> Bool
-checkWinCol gm ply = any (== True) (map (checkWinCol' ply) gm)
-    where checkWinCol' ply col = any (== True) (map (checkWinCol'' ply col) [1..length col])
-          checkWinCol'' ply col n = getElemAtDex col n == playerToInt ply && getElemAtDex col (n+1) == playerToInt ply && getElemAtDex col (n+2) == playerToInt ply && getElemAtDex col (n+3) == playerToInt ply
-          playerToInt Red = 1
-          playerToInt Black = 2
-checkWinDiag :: Game -> Player -> Bool
-checkWinDiag gm ply = checkWinDiag' gm ply || checkWinDiag' (reverse gm) ply
-    where checkWinDiag' gm ply = any (== True) (map (checkWinDiag'' ply) gm)
-          checkWinDiag'' ply row = any (== True) (map (checkWinDiag''' ply row) [1..length row])
-          checkWinDiag''' ply row n = getElemAtDex row n == playerToInt ply && getElemAtDex (tail row) (n+1) == playerToInt ply && getElemAtDex (tail (tail row)) (n+2) == playerToInt ply && getElemAtDex (tail (tail (tail row))) (n+3) == playerToInt ply
-          playerToInt Red = 1
-          playerToInt Black = 2
+-- still working on checkStraightWin/Diag
 
 checkWin :: Game -> Player -> Bool
-checkWin gm ply = checkWinRow gm ply || checkWinCol gm ply || checkWinDiag gm ply
+checkWin gm ply = chkStrW rotateGame (gm) ply || chkStrW gm ply || checkWinDiag gm ply
+
+chkStrW :: Game -> Player -> Bool
+chkStrW gm ply = if length gm < 4 then False else function
+    where function = chkStrW (tail gm) ply || chkStrW (init gm) ply || chkStrW (tail gm) ply || chkStrW (init gm) ply
+
+checkWinDiag :: Game -> Player -> Bool
+checkWinDiag gm ply = undefined
+
 
 playGame :: Game -> Player -> IO ()
 playGame gm ply = do
