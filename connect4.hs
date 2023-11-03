@@ -94,7 +94,7 @@ playGame gm ply = do
     displayGame newGm
     if checkWin newGm ply then putStrLn (show ply ++ " wins!") else playGame newGm (switchPlayer ply)
 
-main :: IO ()
+main :: IO () -- main that asks for number of rows and columns
 main = do
     putStrLn "Enter the number of rows"
     rows <- getLine
@@ -103,8 +103,7 @@ main = do
     let gm = makeGame (read rows) (read cols)
     playGame gm Red
 
--- main that uses constant number of rows and columns 
--- main :: IO ()
+-- main :: IO () -- main that uses constant number of rows and columns 
 -- main = do
 --     let rows = 6
 --         cols = 7
