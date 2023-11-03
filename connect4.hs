@@ -98,7 +98,7 @@ playGame gm ply = do
     col <- getLine
     let newGm = makeMove (read col) gm ply
     displayGame newGm
-    if checkWin newGm ply then putStrLn (show ply ++ " wins!") else playGame newGm (switchPlayer ply)
+    --if checkWin newGm ply then putStrLn (show ply ++ " wins!") else playGame newGm (switchPlayer ply)
 
 main :: IO () -- main that asks for number of rows and columns
 main = do
