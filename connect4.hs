@@ -79,7 +79,7 @@ checkWinDiag :: Game -> Player -> Bool -- checks if a player has won diagonally
 checkWinDiag gm ply = undefined
 
 checkWin :: Game -> Player -> Bool -- checks if a player has won
-checkWin gm ply = chkStrW rotateGame (gm) ply || chkStrW gm ply || checkWinDiag gm ply
+checkWin gm ply = chkStrW (rotateGame gm) ply || chkStrW gm ply || checkWinDiag gm ply
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame gm = if checkWin gm Red then Red else if checkWin gm Black then Black else Empty
