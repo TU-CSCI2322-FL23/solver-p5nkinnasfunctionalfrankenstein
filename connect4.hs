@@ -21,7 +21,7 @@ type Winner = Player
 
 
 
-testGame :: Game
+testGame :: Game -- test game
 testGame = [[Empty,Empty,Empty,Empty,Empty,Empty,Empty],
             [Empty,Empty,Empty,Empty,Empty,Empty,Empty],
             [Empty,Empty,Empty,Black,Empty,Empty,Empty],
@@ -29,7 +29,7 @@ testGame = [[Empty,Empty,Empty,Empty,Empty,Empty,Empty],
             [Empty,Empty,Empty,Black,Empty,Empty,Empty],
             [Empty,Empty,Empty,Red,Empty,Empty,Empty]]
 
-testGame2 :: Game
+testGame2 :: Game -- test game with a win
 testGame2 = [[Empty,Empty,Empty,Empty,Empty,Empty,Empty],
             [Empty,Empty,Empty,Empty,Empty,Empty,Empty],
             [Empty,Empty,Empty,Black,Empty,Empty,Empty],
