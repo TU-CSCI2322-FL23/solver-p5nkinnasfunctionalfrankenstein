@@ -99,6 +99,7 @@ playGame gm ply = do
     let newGm = makeMove (read col) gm ply
     displayGame newGm
     --if checkWin newGm ply then putStrLn (show ply ++ " wins!") else playGame newGm (switchPlayer ply)
+    playGame newGm (switchPlayer ply)
 
 main :: IO () -- main that asks for number of rows and columns
 main = do
