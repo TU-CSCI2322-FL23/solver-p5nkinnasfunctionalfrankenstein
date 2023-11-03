@@ -62,8 +62,14 @@ makeMove n gm ply = if n > length (head gm) || n < 1 then gm else function
 rotateGame :: Game -> Game -- rotates a game 90 degrees
 rotateGame gm = if length (head gm) == 0 then [] else (map last gm) : rotateGame (map init gm)
 
+
+gameToString :: Game -> String -- converts a game to a string
+gameToString gm = if length gm == 0 then [] else function
+    where function = (map playerToChar (head gm)) ++ "\n" ++ gameToString (tail gm)
+
 displayGame :: Game -> IO () -- displays a game
-displayGame gm = rotateGame gm >>= putStrLn . map playerToChar
+displayGame gm = putStrLn (gameToString nGm)
+    where nGm = (rotateGame gm)
 
 switchPlayer :: Player -> Player -- switches player
 switchPlayer Red = Black
