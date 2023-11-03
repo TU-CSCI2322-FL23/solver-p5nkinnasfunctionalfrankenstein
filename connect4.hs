@@ -50,6 +50,7 @@ changeLastEmpty col ply = if last col == Empty then (init col) ++ [ply] else cha
 playerToChar :: Player -> Char -- converts player to char
 playerToChar Red = 'R'
 playerToChar Black = 'B'
+playerToChar Empty = '.'
 
 findColNum :: Game -> Int -> [Player] -- finds the nth column in a game
 findColNum gm n = if n == 1 then head gm else findColNum (tail gm) (n-1)
@@ -69,7 +70,7 @@ gameToString gm = if length gm == 0 then [] else function
 
 displayGame :: Game -> IO () -- displays a game
 displayGame gm = putStrLn (gameToString nGm)
-    where nGm = (rotateGame gm)
+    where nGm = gm
 
 switchPlayer :: Player -> Player -- switches player
 switchPlayer Red = Black
@@ -89,7 +90,6 @@ checkWin gm ply = chkStrW (rotateGame gm) ply || chkStrW gm ply || checkWinDiag 
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame gm = if checkWin gm Red then Red else if checkWin gm Black then Black else Empty
-
 
 playGame :: Game -> Player -> IO () -- plays a game
 playGame gm ply = do
