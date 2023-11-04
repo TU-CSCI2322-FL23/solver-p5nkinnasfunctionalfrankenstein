@@ -45,7 +45,7 @@ findLastEmpty :: [Player] -> Int --finds the last empty spot in a column
 findLastEmpty col = if elem == Empty then length col else findLastEmpty (init col)
     where elem = last col
 changeLastEmpty :: [Player] -> Player -> [Player] -- changes the last empty spot in a column to a player
-changeLastEmpty col ply = if last col == Empty then (init col) ++ [ply] else changeLastEmpty (init col) ply
+changeLastEmpty col ply = if last col == Empty then (init col) ++ [ply] else changeLastEmpty (init col) ply -- potential error
 
 playerToChar :: Player -> Char -- converts player to char
 playerToChar Red = 'R'
@@ -97,7 +97,7 @@ playGame gm ply = do
     putStrLn "Enter a column number to make a move"
     col <- getLine
     let newGm = makeMove (read col) gm ply
-    displayGame newGm
+    --displayGame newGm
     --if checkWin newGm ply then putStrLn (show ply ++ " wins!") else playGame newGm (switchPlayer ply)
     playGame newGm (switchPlayer ply)
 
