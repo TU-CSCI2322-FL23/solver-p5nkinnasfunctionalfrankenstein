@@ -62,13 +62,27 @@ findColNum gm bkGm n = if n == 1 then head gm else findColNum (tail gm) bkGm (n-
 findBackGame :: Game -> Game -> Int -> Game -- finds the nth column in a game
 findBackGame gm bkGm n = if n == 1 then gm else findBackGame (tail gm) (([last gm]) ++ bkGm) (n-1)
 
+findFrontGame :: Game -> Game -> Int -> Game -- finds the nth column in a game
+findFrontGame gm bkGm 6 = init gm
+findFrontGame gm bkGm 5 = init (init gm)
+findFrontGame gm bkGm 4 = init (init (init gm))
+findFrontGame gm bkGm 3 = init (init (init (init gm)))
+findFrontGame gm bkGm 2 = [head gm]
+findFrontGame gm bkGm 1 = []
+--findFrontGame gm bkGm n = if n == 1 then gm else findFrontGame (init gm) (bkGm ++ [(head gm)]) (n-1)
+
+
+canMkMv :: Int -> Game -> Bool -- checks if a move can be made in a game
+canMkMv n gm = if n > length (head gm) || n < 1 then False else function
+    where function = if last (findColNum gm [] n) == Empty then True else False
+
 mkMv :: Int -> Game -> Player -> Game -- makes a move in a game
-mkMv n gm ply = if n > length (head gm) || n < 1 then gm else function
-    where function = (init gm) ++ [cLE2 (head bkGm) [] ply] ++ (tail bkGm)
-          bkGm = findBackGame gm [] n
+mkMv n gm ply = frntGm ++ [cLE2 (head bkGm) [] ply] ++ (tail bkGm)
+    where bkGm = findBackGame gm [] n
+          frntGm = findFrontGame gm gm n
 
 makeMove :: Int -> Game -> Player -> Game -- makes a move in a game
-makeMove n gm ply = mkMv n gm ply
+makeMove n gm ply = if canMkMv n gm then mkMv n gm ply else gm
 
 --makeMv2 :: Int -> Game -> Player -> Game -- makes a move in a game
 
@@ -135,9 +149,8 @@ main = do
 
 -- main :: IO () -- main that uses constant number of rows and columns 
 -- main = do
---     let rows = 6
---         cols = 7
---         gm = makeGame rows cols
+--     let rows = "6"
+--     let cols = "6"
+--     let gm = makeGame rows cols
 --     playGame gm Red
-
 
