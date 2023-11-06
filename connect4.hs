@@ -39,26 +39,18 @@ testGame2 = [[Empty,Empty,Empty,Empty,Empty,Empty,Empty],
 makeGame :: Int -> Int -> Game -- makes a blank game of size n x m
 makeGame n m = [[Empty | x <- [1..n]] | y <- [1..m]]
 
-findLastEmpty :: [Player] -> Int --finds the last empty spot in a column
-findLastEmpty col = if elem == Empty then length col else findLastEmpty (init col)
-    where elem = last col
--- changeLastEmpty :: [Player] -> Player -> [Player] -- changes the last empty spot in a column to a player
--- changeLastEmpty col ply = if last col == Empty then (init col) ++ [ply] else changeLastEmpty (init col) ply -- potential error
-
-cLE2 :: [Player] -> Player -> [Player] -> [Player] -- changes the last empty spot in a column to a player
-cLE2 col ply bh = 
-    if last col == Empty 
-        then (init col) ++ [ply] ++ bh 
-        else cLE2 (init col) ply ([last col] ++ bh) -- potential error
-        
-
 playerToChar :: Player -> Char -- converts player to char
 playerToChar Red = 'R'
 playerToChar Black = 'B'
 playerToChar Empty = '.'
 
-findColNum :: Game -> Game -> Int -> [Player] -- finds the nth column in a game
-findColNum gm bkGm n = if n == 1 then head gm else findColNum (tail gm) bkGm (n-1)
+-- move functions
+
+cLE :: [Player] -> Player -> [Player] -> [Player] -- changes the last empty spot in a column to a player
+cLE col ply bh = 
+    if last col == Empty 
+        then (init col) ++ [ply] ++ bh 
+        else cLE (init col) ply ([last col] ++ bh)
 
 backGame :: Game -> Int -> Game -- finds the nth column in a game
 backGame gm n = if n == 1 then gm else backGame (tail gm) (n-1)
@@ -71,12 +63,14 @@ canMkMv n gm = if n > length (head gm) || n < 1 then False else function
     where function = if last (findColNum gm [] n) == Empty then True else False
 
 mkMv :: Int -> Game -> Player -> Game -- makes a move in a game
-mkMv n gm ply = frntGm ++ [cLE2 (head bkGm) ply []] ++ (tail bkGm)
+mkMv n gm ply = frntGm ++ [cLE (head bkGm) ply []] ++ (tail bkGm)
     where bkGm = backGame gm n
           frntGm = frontGame gm n
 
 makeMove :: Int -> Game -> Player -> Game -- makes a move in a game
 makeMove n gm ply = if canMkMv n gm then mkMv n gm ply else gm
+
+-- orentation functions
 
 rotateGame :: Game -> Game -- rotates a game 90 degrees
 rotateGame gm = if length (head gm) == 0 then [] else (map last gm) : rotateGame (map init gm)
@@ -84,11 +78,8 @@ rotateGame gm = if length (head gm) == 0 then [] else (map last gm) : rotateGame
 rotateGame2 :: Game -> Game -- rotates a game 90 degrees
 rotateGame2 gm = if length (last gm) == 0 then [] else (map head gm) : rotateGame2 (map tail gm)
 
-
 flipHori :: Game -> Game -- flips a game horizontally
 flipHori gm = if length gm == 0 then [] else (reverse (head gm)) : flipHori (tail gm)
-
-
 
 gameToString :: Game -> String -- converts a game to a string
 gameToString gm = if length gm == 0 then [] else function
@@ -99,11 +90,13 @@ displayGame gm = putStrLn (gameToString (rotateGame2 nGm))
 --displayGame gm = putStrLn (gameToString (nGm))
     where nGm = gm
 
+--player logic
+
 switchPlayer :: Player -> Player -- switches player
 switchPlayer Red = Black
 switchPlayer Black = Red
 
--- still working on checkStraightWin/Diag
+-- game logic
 
 chkStrW :: Game -> Player -> Bool -- checks if a player has won in a straight line
 chkStrW gm ply = if length gm < 4 then False else function
