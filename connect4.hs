@@ -47,21 +47,43 @@ findLastEmpty col = if elem == Empty then length col else findLastEmpty (init co
 changeLastEmpty :: [Player] -> Player -> [Player] -- changes the last empty spot in a column to a player
 changeLastEmpty col ply = if last col == Empty then (init col) ++ [ply] else changeLastEmpty (init col) ply -- potential error
 
+cLE2 :: [Player] -> [Player] -> Player -> [Player] -- changes the last empty spot in a column to a player
+cLE2 col bh ply = if last col == Empty then (init col) ++ [ply] ++ bh else cLE2 (init col) ([last col]++ bh) ply -- potential error
+        
+
 playerToChar :: Player -> Char -- converts player to char
 playerToChar Red = 'R'
 playerToChar Black = 'B'
 playerToChar Empty = '.'
 
-findColNum :: Game -> Int -> [Player] -- finds the nth column in a game
-findColNum gm n = if n == 1 then head gm else findColNum (tail gm) (n-1)
+findColNum :: Game -> Game -> Int -> [Player] -- finds the nth column in a game
+findColNum gm bkGm n = if n == 1 then head gm else findColNum (tail gm) bkGm (n-1)
+
+findBackGame :: Game -> Game -> Int -> Game -- finds the nth column in a game
+findBackGame gm bkGm n = if n == 1 then gm else findBackGame (tail gm) (([last gm]) ++ bkGm) (n-1)
+
+mkMv :: Int -> Game -> Player -> Game -- makes a move in a game
+mkMv n gm ply = if n > length (head gm) || n < 1 then gm else function
+    where function = (init gm) ++ [cLE2 (head bkGm) [] ply] ++ (tail bkGm)
+          bkGm = findBackGame gm [] n
 
 makeMove :: Int -> Game -> Player -> Game -- makes a move in a game
-makeMove n gm ply = if n > length (head gm) || n < 1 then gm else function
-    where function = (init gm) ++ [changeLastEmpty (findColNum gm n) ply]
+makeMove n gm ply = mkMv n gm ply
+
+--makeMv2 :: Int -> Game -> Player -> Game -- makes a move in a game
+
 
 
 rotateGame :: Game -> Game -- rotates a game 90 degrees
 rotateGame gm = if length (head gm) == 0 then [] else (map last gm) : rotateGame (map init gm)
+
+rotateGame2 :: Game -> Game -- rotates a game 90 degrees
+rotateGame2 gm = if length (last gm) == 0 then [] else (map head gm) : rotateGame2 (map tail gm)
+
+
+flipHori :: Game -> Game -- flips a game horizontally
+flipHori gm = if length gm == 0 then [] else (reverse (head gm)) : flipHori (tail gm)
+
 
 
 gameToString :: Game -> String -- converts a game to a string
@@ -69,7 +91,7 @@ gameToString gm = if length gm == 0 then [] else function
     where function = (map playerToChar (head gm)) ++ "\n" ++ gameToString (tail gm)
 
 displayGame :: Game -> IO () -- displays a game
-displayGame gm = putStrLn (gameToString nGm)
+displayGame gm = putStrLn (gameToString (rotateGame2 nGm))
     where nGm = gm
 
 switchPlayer :: Player -> Player -- switches player
