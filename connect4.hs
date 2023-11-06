@@ -67,10 +67,31 @@ gameToString :: Game -> String -- converts a game to a string
 gameToString gm = if length gm == 0 then [] else function
     where function = (map playerToChar (head gm)) ++ "\n" ++ gameToString (tail gm)
 
+intToChar :: Int -> Char -- converts an int to a char
+intToChar n = head (show n)
+
+bars :: Char -> String
+bars n = "|" ++ [n] ++ "|"
+
+
+
+prettyPrintGame :: Game -> String -- pretty prints a game
+prettyPrintGame gm = " " ++ numString ++ "---" ++ barString ++ "|" ++ init (init gameString)
+    where width = length (head gm)
+          height = length gm
+          nGm = rotateGame2 gm
+          nums = [" " ++ [intToChar x] ++ " " | x <- [1..width]]
+          bar = ["---" | x <- [1..width]]
+          game = (map playerToChar (head nGm)) ++ "\n" ++ gameToString (tail nGm)
+          gameBars = [bars x | x <- game]
+          numString = concat nums ++ "\n"
+          barString = concat bar ++ "\n"
+          gameString = concat gameBars ++ "\n"
+
 displayGame :: Game -> IO () -- displays a game
-displayGame gm = putStrLn (gameToString (rotateGame2 nGm))
---displayGame gm = putStrLn (gameToString (nGm))
-    where nGm = gm
+displayGame gm = putStrLn (prettyPrintGame gm)
+    --putStrLn (gameToString (rotateGame2 gm))
+
 
 --player logic
 
