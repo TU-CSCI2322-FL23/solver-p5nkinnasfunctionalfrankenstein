@@ -19,8 +19,6 @@ type Winner = Player
 
 -- (If time) Be able to pretty-print a game into a string.
 
-
-
 testGame :: Game -- test game
 testGame = [[Empty,Empty,Empty,Empty,Empty,Empty,Empty],
             [Empty,Empty,Empty,Empty,Empty,Empty,Empty],
@@ -44,14 +42,14 @@ makeGame n m = [[Empty | x <- [1..n]] | y <- [1..m]]
 findLastEmpty :: [Player] -> Int --finds the last empty spot in a column
 findLastEmpty col = if elem == Empty then length col else findLastEmpty (init col)
     where elem = last col
-changeLastEmpty :: [Player] -> Player -> [Player] -- changes the last empty spot in a column to a player
-changeLastEmpty col ply = if last col == Empty then (init col) ++ [ply] else changeLastEmpty (init col) ply -- potential error
+-- changeLastEmpty :: [Player] -> Player -> [Player] -- changes the last empty spot in a column to a player
+-- changeLastEmpty col ply = if last col == Empty then (init col) ++ [ply] else changeLastEmpty (init col) ply -- potential error
 
 cLE2 :: [Player] -> Player -> [Player] -> [Player] -- changes the last empty spot in a column to a player
 cLE2 col ply bh = 
     if last col == Empty 
         then (init col) ++ [ply] ++ bh 
-        else cLE2 (init col) ply ([last col]++ bh) -- potential error
+        else cLE2 (init col) ply ([last col] ++ bh) -- potential error
         
 
 playerToChar :: Player -> Char -- converts player to char
@@ -62,13 +60,11 @@ playerToChar Empty = '.'
 findColNum :: Game -> Game -> Int -> [Player] -- finds the nth column in a game
 findColNum gm bkGm n = if n == 1 then head gm else findColNum (tail gm) bkGm (n-1)
 
-findBackGame :: Game -> Int -> Game -- finds the nth column in a game
-findBackGame gm n = if n == 1 then gm else findBackGame (tail gm) (n-1)
+backGame :: Game -> Int -> Game -- finds the nth column in a game
+backGame gm n = if n == 1 then gm else backGame (tail gm) (n-1)
 
-findFrontGame :: Game -> Int -> Game -- finds the nth column in a game
-findFrontGame gm n = if n == length gm then init gm else findFrontGame (init gm) (n)
---findFrontGame gm bkGm n = if n == 1 then gm else findFrontGame (init gm) (bkGm ++ [(head gm)]) (n-1)
-
+frontGame :: Game -> Int -> Game -- finds the nth column in a game
+frontGame gm n = if n == length gm then init gm else frontGame (init gm) (n)
 
 canMkMv :: Int -> Game -> Bool -- checks if a move can be made in a game
 canMkMv n gm = if n > length (head gm) || n < 1 then False else function
@@ -76,15 +72,11 @@ canMkMv n gm = if n > length (head gm) || n < 1 then False else function
 
 mkMv :: Int -> Game -> Player -> Game -- makes a move in a game
 mkMv n gm ply = frntGm ++ [cLE2 (head bkGm) ply []] ++ (tail bkGm)
-    where bkGm = findBackGame gm n
-          frntGm = findFrontGame gm n
+    where bkGm = backGame gm n
+          frntGm = frontGame gm n
 
 makeMove :: Int -> Game -> Player -> Game -- makes a move in a game
 makeMove n gm ply = if canMkMv n gm then mkMv n gm ply else gm
-
---makeMv2 :: Int -> Game -> Player -> Game -- makes a move in a game
-
-
 
 rotateGame :: Game -> Game -- rotates a game 90 degrees
 rotateGame gm = if length (head gm) == 0 then [] else (map last gm) : rotateGame (map init gm)
@@ -137,19 +129,15 @@ playGame gm ply = do
         --if checkWin newGm ply then putStrLn (show ply ++ " wins!") else playGame newGm (switchPlayer ply)
         playGame newGm (switchPlayer ply)
 
-main :: IO () -- main that asks for number of rows and columns
-main = do
-    putStrLn "Enter the number of rows"
-    rows <- getLine
-    putStrLn "Enter the number of columns"
-    cols <- getLine
-    let gm = makeGame (read cols) (read rows)
-    playGame gm Red
-
--- main :: IO () -- main that uses constant number of rows and columns 
+-- main :: IO () -- main that asks for number of rows and columns
 -- main = do
---     let rows = "6"
---         cols = "6"
---     let gm = makeGame rows cols
+--     putStrLn "Enter the number of rows"
+--     rows <- getLine
+--     putStrLn "Enter the number of columns"
+--     cols <- getLine
+--     let gm = makeGame (read cols) (read rows)
 --     playGame gm Red
+
+main :: IO () -- main that uses constant number of rows and columns 
+main = playGame (makeGame 6 6) Red
 
