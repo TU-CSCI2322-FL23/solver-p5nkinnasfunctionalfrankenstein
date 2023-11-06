@@ -73,8 +73,6 @@ intToChar n = head (show n)
 bars :: Char -> String
 bars n = "|" ++ [n] ++ "|"
 
-
-
 prettyPrintGame :: Game -> String -- pretty prints a game
 prettyPrintGame gm = " " ++ numString ++ "---" ++ barString ++ "|" ++ init (init gameString)
     where width = length (head gm)
