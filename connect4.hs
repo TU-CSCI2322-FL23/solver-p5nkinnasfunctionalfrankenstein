@@ -118,10 +118,11 @@ playGame gm ply = do
     displayGame gm
     putStrLn "Enter a column number to make a move"
     col <- getLine
-    let newGm = makeMove (read col) gm ply
-    --displayGame newGm
-    --if checkWin newGm ply then putStrLn (show ply ++ " wins!") else playGame newGm (switchPlayer ply)
-    playGame newGm (switchPlayer ply)
+    if (col == "q") then putStrLn "Quitting" 
+    else do
+        let newGm = makeMove (read col) gm ply
+        --if checkWin newGm ply then putStrLn (show ply ++ " wins!") else playGame newGm (switchPlayer ply)
+        playGame newGm (switchPlayer ply)
 
 main :: IO () -- main that asks for number of rows and columns
 main = do
