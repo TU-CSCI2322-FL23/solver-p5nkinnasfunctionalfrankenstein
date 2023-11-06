@@ -47,8 +47,11 @@ findLastEmpty col = if elem == Empty then length col else findLastEmpty (init co
 changeLastEmpty :: [Player] -> Player -> [Player] -- changes the last empty spot in a column to a player
 changeLastEmpty col ply = if last col == Empty then (init col) ++ [ply] else changeLastEmpty (init col) ply -- potential error
 
-cLE2 :: [Player] -> [Player] -> Player -> [Player] -- changes the last empty spot in a column to a player
-cLE2 col bh ply = if last col == Empty then (init col) ++ [ply] ++ bh else cLE2 (init col) ([last col]++ bh) ply -- potential error
+cLE2 :: [Player] -> Player -> [Player] -> [Player] -- changes the last empty spot in a column to a player
+cLE2 col ply bh = 
+    if last col == Empty 
+        then (init col) ++ [ply] ++ bh 
+        else cLE2 (init col) ply ([last col]++ bh) -- potential error
         
 
 playerToChar :: Player -> Char -- converts player to char
@@ -59,8 +62,8 @@ playerToChar Empty = '.'
 findColNum :: Game -> Game -> Int -> [Player] -- finds the nth column in a game
 findColNum gm bkGm n = if n == 1 then head gm else findColNum (tail gm) bkGm (n-1)
 
-findBackGame :: Game -> Game -> Int -> Game -- finds the nth column in a game
-findBackGame gm bkGm n = if n == 1 then gm else findBackGame (tail gm) (([last gm]) ++ bkGm) (n-1)
+findBackGame :: Game -> Int -> Game -- finds the nth column in a game
+findBackGame gm n = if n == 1 then gm else findBackGame (tail gm) (n-1)
 
 findFrontGame :: Game -> Int -> Game -- finds the nth column in a game
 findFrontGame gm n = if n == length gm then init gm else findFrontGame (init gm) (n)
@@ -72,8 +75,8 @@ canMkMv n gm = if n > length (head gm) || n < 1 then False else function
     where function = if last (findColNum gm [] n) == Empty then True else False
 
 mkMv :: Int -> Game -> Player -> Game -- makes a move in a game
-mkMv n gm ply = frntGm ++ [cLE2 (head bkGm) [] ply] ++ (tail bkGm)
-    where bkGm = findBackGame gm [] n
+mkMv n gm ply = frntGm ++ [cLE2 (head bkGm) ply []] ++ (tail bkGm)
+    where bkGm = findBackGame gm n
           frntGm = findFrontGame gm n
 
 makeMove :: Int -> Game -> Player -> Game -- makes a move in a game
@@ -101,6 +104,7 @@ gameToString gm = if length gm == 0 then [] else function
 
 displayGame :: Game -> IO () -- displays a game
 displayGame gm = putStrLn (gameToString (rotateGame2 nGm))
+--displayGame gm = putStrLn (gameToString (nGm))
     where nGm = gm
 
 switchPlayer :: Player -> Player -- switches player
@@ -139,7 +143,7 @@ main = do
     rows <- getLine
     putStrLn "Enter the number of columns"
     cols <- getLine
-    let gm = makeGame (read rows) (read cols)
+    let gm = makeGame (read cols) (read rows)
     playGame gm Red
 
 -- main :: IO () -- main that uses constant number of rows and columns 
