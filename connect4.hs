@@ -70,16 +70,33 @@ gameToString gm = if length gm == 0 then [] else function
 intToChar :: Int -> Char -- converts an int to a char
 intToChar n = head (show n)
 
-bars :: Char -> String
-bars n = "|" ++ [n] ++ "|"
+bars2 :: Char -> String
+bars2 n = "|" ++ [n] ++ "|"
 
-prettyPrintGame :: Game -> String -- pretty prints a game
-prettyPrintGame gm = " " ++ numString ++ "---" ++ barString ++ "|" ++ init (init gameString)
+prettyPrintGame2 :: Game -> String -- pretty prints a game
+prettyPrintGame2 gm = " " ++ numString ++ "---" ++ barString ++ "|" ++ init (init gameString)
     where width = length (head gm)
           height = length gm
           nGm = rotateGame2 gm
           nums = [" " ++ [intToChar x] ++ " " | x <- [1..width]]
           bar = ["---" | x <- [1..width]]
+          game = (map playerToChar (head nGm)) ++ "\n" ++ gameToString (tail nGm)
+          gameBars = [bars2 x | x <- game]
+          numString = concat nums ++ "\n"
+          barString = concat bar ++ "\n"
+          gameString = concat gameBars ++ "\n"
+
+
+bars :: Char -> String
+bars n = "|" ++ [n] -- ++ "|"
+
+prettyPrintGame :: Game -> String -- pretty prints a game
+prettyPrintGame gm = numString ++ "--" ++ barString ++ init (init gameString)
+    where width = length (head gm)
+          height = length gm
+          nGm = rotateGame2 gm
+          nums = [" " ++ [intToChar x] | x <- [1..width]]
+          bar = ["--" | x <- [1..width]]
           game = (map playerToChar (head nGm)) ++ "\n" ++ gameToString (tail nGm)
           gameBars = [bars x | x <- game]
           numString = concat nums ++ "\n"
