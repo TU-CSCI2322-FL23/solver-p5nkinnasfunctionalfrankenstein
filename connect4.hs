@@ -74,7 +74,7 @@ bars2 :: Char -> String
 bars2 n = "|" ++ [n] ++ "|"
 
 prettyPrintGame2 :: Game -> String -- pretty prints a game
-prettyPrintGame2 gm = " " ++ numString ++ "---" ++ barString ++ "|" ++ init (init gameString)
+prettyPrintGame2 gm = " " ++ numString ++ "---" ++ barString ++ "|" ++ (init gameString)
     where width = length (head gm)
           height = length gm
           nGm = rotateGame2 gm
@@ -84,14 +84,14 @@ prettyPrintGame2 gm = " " ++ numString ++ "---" ++ barString ++ "|" ++ init (ini
           gameBars = [bars2 x | x <- game]
           numString = concat nums ++ "\n"
           barString = concat bar ++ "\n"
-          gameString = concat gameBars ++ "\n"
+          gameString = concat gameBars
 
 
 bars :: Char -> String
 bars n = "|" ++ [n] -- ++ "|"
 
 prettyPrintGame :: Game -> String -- pretty prints a game
-prettyPrintGame gm = numString ++ "--" ++ barString ++ init (init gameString)
+prettyPrintGame gm = numString ++ "--" ++ barString ++ (init gameString)
     where width = length (head gm)
           height = length gm
           nGm = rotateGame2 gm
@@ -101,7 +101,7 @@ prettyPrintGame gm = numString ++ "--" ++ barString ++ init (init gameString)
           gameBars = [bars x | x <- game]
           numString = concat nums ++ "\n"
           barString = concat bar ++ "\n"
-          gameString = concat gameBars ++ "\n"
+          gameString = concat gameBars
 
 displayGame :: Game -> IO () -- displays a game
 displayGame gm = putStrLn (prettyPrintGame gm)
