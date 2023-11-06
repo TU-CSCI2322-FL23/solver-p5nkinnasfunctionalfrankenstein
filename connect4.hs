@@ -1,6 +1,4 @@
 
-
---data Board =  -- board size
 data Player = Red | Black | Empty deriving (Show, Eq)
 type Game = [[Player]]
 type Winner = Player
@@ -63,17 +61,13 @@ backGame gm n = if n == 1 then gm else backGame (tail gm) (n-1)
 frontGame :: Game -> Int -> Game -- finds the nth column in a game
 frontGame gm n = if n == length gm then init gm else frontGame (init gm) (n)
 
-canMkMv :: Int -> Game -> Bool -- checks if a move can be made in a game
-canMkMv n gm = if n > length (head gm) || n < 1 then False else function
-    where function = if head (findColNum gm [] n) == Empty then True else False
-
-mkMv :: Int -> Game -> Player -> Game -- makes a move in a game
-mkMv n gm ply = frntGm ++ [insertPlay (head bkGm) ply []] ++ (tail bkGm)
-    where bkGm = backGame gm n
-          frntGm = frontGame gm n
+canMakeMove :: Int -> Game -> Bool -- checks if a move can be made in a game
+canMakeMove n gm = if n > length (head gm) || n < 1 then False else True
 
 makeMove :: Int -> Game -> Player -> Game -- makes a move in a game
-makeMove n gm ply = mkMv n gm ply
+makeMove n gm ply = frntGm ++ [insertPlay (head bkGm) ply []] ++ (tail bkGm)
+    where bkGm = backGame gm n
+          frntGm = frontGame gm n
 
 -- orentation functions
 
@@ -83,8 +77,8 @@ rotateGame gm = if length (head gm) == 0 then [] else (map last gm) : rotateGame
 rotateGame2 :: Game -> Game -- rotates a game 90 degrees
 rotateGame2 gm = if length (last gm) == 0 then [] else (map head gm) : rotateGame2 (map tail gm)
 
-flipHori :: Game -> Game -- flips a game horizontally
-flipHori gm = if length gm == 0 then [] else (reverse (head gm)) : flipHori (tail gm)
+flipHorizontal :: Game -> Game -- flips a game horizontally
+flipHorizontal gm = if length gm == 0 then [] else (reverse (head gm)) : flipHorizontal (tail gm)
 
 gameToString :: Game -> String -- converts a game to a string
 gameToString gm = if length gm == 0 then [] else function
@@ -103,15 +97,15 @@ switchPlayer Black = Red
 
 -- game logic
 
-chkStrW :: Game -> Player -> Bool -- checks if a player has won in a straight line
-chkStrW gm ply = if length gm < 4 then False else function
-    where function = chkStrW (tail gm) ply || chkStrW (init gm) ply || chkStrW (tail gm) ply || chkStrW (init gm) ply
+checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
+checkStraightWin gm ply = if length gm < 4 then False else function
+    where function = checkStraightWin (tail gm) ply || checkStraightWin (init gm) ply || checkStraightWin (tail gm) ply || checkStraightWin (init gm) ply
 
-checkWinDiag :: Game -> Player -> Bool -- checks if a player has won diagonally
-checkWinDiag gm ply = undefined
+checkDiagonalWin :: Game -> Player -> Bool -- checks if a player has won diagonally
+checkDiagonalWin gm ply = undefined
 
 checkWin :: Game -> Player -> Bool -- checks if a player has won
-checkWin gm ply = chkStrW (rotateGame gm) ply || chkStrW gm ply || checkWinDiag gm ply
+checkWin gm ply = checkStraightWin (rotateGame gm) ply || checkStraightWin gm ply || checkDiagonalWin gm ply
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame gm = if checkWin gm Red then Red else if checkWin gm Black then Black else Empty
