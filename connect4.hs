@@ -77,7 +77,7 @@ canMkMv n gm = if n > length (head gm) || n < 1 then False else function
     where function = if last (findColNum gm [] n) == Empty then True else False
 
 mkMv :: Int -> Game -> Player -> Game -- makes a move in a game
-mkMv n gm ply = frntGm ++ [cLE2 (head bkGm) [] ply] ++ (tail bkGm)
+mkMv n gm ply = (init gm) ++ [cLE2 (head bkGm) [] ply] ++ (tail bkGm)
     where bkGm = findBackGame gm [] n
           frntGm = findFrontGame gm gm n
 
