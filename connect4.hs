@@ -18,23 +18,6 @@ type Winner = Player
 
 -- (If time) Be able to pretty-print a game into a string.
 
-testGame :: Game -- test game
-testGame = [[Empty,Empty,Empty,Empty,Empty,Empty,Empty],
-            [Empty,Empty,Empty,Empty,Empty,Empty,Empty],
-            [Empty,Empty,Empty,Black,Empty,Empty,Empty],
-            [Empty,Empty,Empty,Red,Empty,Empty,Empty],
-            [Empty,Empty,Empty,Black,Empty,Empty,Empty],
-            [Empty,Empty,Empty,Red,Empty,Empty,Empty]]
-
-testGame2 :: Game -- test game with a win
-testGame2 = [[Empty,Empty,Empty,Empty,Empty,Empty,Empty],
-            [Empty,Empty,Empty,Empty,Empty,Empty,Empty],
-            [Empty,Empty,Empty,Black,Empty,Empty,Empty],
-            [Empty,Empty,Empty,Red,Black,Empty,Empty],
-            [Empty,Empty,Empty,Black,Black,Black,Empty],
-            [Empty,Empty,Empty,Red,Red,Red,Black]]
-
-
 makeGame :: Int -> Int -> Game -- makes a blank game of size n x m
 makeGame n m = [[Empty | x <- [1..n]] | y <- [1..m]]
 
@@ -132,4 +115,3 @@ playGame gm ply = do
 
 main :: IO () -- main that uses constant number of rows and columns 
 main = playGame (makeGame 6 6) Red
-
