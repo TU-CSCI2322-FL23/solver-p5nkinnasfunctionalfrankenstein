@@ -6,6 +6,7 @@ type Game = [[Player]]
 type Winner = Player
 -- stuff the needs to be done
 -- make game contain current player
+-- diagonal win check
 -- add current player to makeMove
 -- check legal moves
 
@@ -46,11 +47,15 @@ playerToChar Empty = '.'
 
 -- move functions
 
-cLE :: [Player] -> Player -> [Player] -> [Player] -- changes the last empty spot in a column to a player
-cLE col ply bh = 
-    if last col == Empty 
-        then (init col) ++ [ply] ++ bh 
-        else cLE (init col) ply ([last col] ++ bh)
+findColNum :: Game -> [Player] -> Int -> [Player] -- finds the nth column in a game
+findColNum gm backEnd n = if n == 1 then (head gm) ++ backEnd else findColNum (tail gm) ((head gm) ++ backEnd) (n-1)
+
+insertPlay :: [Player] -> Player -> [Player] -> [Player] -- changes the last empty spot in a column to a player
+insertPlay [] ply backEnd = backEnd
+insertPlay frontEnd ply backEnd = 
+    if last frontEnd == Empty 
+        then (init frontEnd) ++ [ply] ++ backEnd 
+        else insertPlay (init frontEnd) ply ([last frontEnd] ++ backEnd)
 
 backGame :: Game -> Int -> Game -- finds the nth column in a game
 backGame gm n = if n == 1 then gm else backGame (tail gm) (n-1)
@@ -60,15 +65,15 @@ frontGame gm n = if n == length gm then init gm else frontGame (init gm) (n)
 
 canMkMv :: Int -> Game -> Bool -- checks if a move can be made in a game
 canMkMv n gm = if n > length (head gm) || n < 1 then False else function
-    where function = if last (findColNum gm [] n) == Empty then True else False
+    where function = if head (findColNum gm [] n) == Empty then True else False
 
 mkMv :: Int -> Game -> Player -> Game -- makes a move in a game
-mkMv n gm ply = frntGm ++ [cLE (head bkGm) ply []] ++ (tail bkGm)
+mkMv n gm ply = frntGm ++ [insertPlay (head bkGm) ply []] ++ (tail bkGm)
     where bkGm = backGame gm n
           frntGm = frontGame gm n
 
 makeMove :: Int -> Game -> Player -> Game -- makes a move in a game
-makeMove n gm ply = if canMkMv n gm then mkMv n gm ply else gm
+makeMove n gm ply = mkMv n gm ply
 
 -- orentation functions
 
