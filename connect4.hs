@@ -183,14 +183,14 @@ playGame gm ply = do
         let newGm = makeMove (read col) gm ply
         if checkWin newGm ply 
         then do 
-            putStrLn (prettyPrintGame newGm ++ "\n=====" ++ show ply ++ " wins!=====\n")
+            putStrLn (prettyPrintGame newGm ++ "\n===" ++ show ply ++ " wins!===\n")
             putStrLn "Enter q to quit or anything else to play again"
             quit <- getLine
             if quit == "q" then putStrLn "Quitting"
             else playGame (makeGame (length (head gm)) (length gm)) Red
         else if getAvailableMoves newGm == [] 
         then do 
-            putStrLn (prettyPrintGame newGm ++ "\n=====Tie game!=====\n") 
+            putStrLn (prettyPrintGame newGm ++ "\n===Tie game!===\n") 
             putStrLn "Enter q to quit or anything else to play again"
             quit <- getLine
             if quit == "q" then putStrLn "Quitting"
