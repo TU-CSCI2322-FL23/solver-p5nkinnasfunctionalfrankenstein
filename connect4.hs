@@ -2,6 +2,7 @@
 data Player = Red | Black | Empty deriving (Show, Eq)
 type Column = [Player]
 type Game = [Column]
+type GameState = (Player, Game)
 type Winner = Player
 type Move = Int
 
@@ -30,8 +31,8 @@ type Move = Int
 
 -- (If time) Be able to pretty-print a game into a string. (Done)
 
-makeGame :: Int -> Int -> Game -- makes a blank game of size n x m
-makeGame n m = [[Empty | x <- [1..n]] | y <- [1..m]]
+makeGameState :: Int -> Int -> GameState -- makes a blank game of size n x m
+makeGameState n m = (Red, [[Empty | x <- [1..n]] | y <- [1..m]])
 
 playerToChar :: Player -> Char -- converts player to char
 playerToChar Red = 'R'
@@ -49,12 +50,16 @@ colHasEmpty [] = False
 colHasEmpty (x:xs) = if x == Empty then True else colHasEmpty xs
 
 
-insertPlay :: Column -> Player -> Column -> Column -- changes the last empty spot in a column to a player
-insertPlay [] ply backEnd = backEnd
-insertPlay frontEnd ply backEnd = 
-    if last frontEnd == Empty 
-        then (init frontEnd) ++ [ply] ++ backEnd 
-        else insertPlay (init frontEnd) ply ([last frontEnd] ++ backEnd)
+-- insertPlay :: Column -> Player -> Column -> Column -- changes the last empty spot in a column to a player
+-- insertPlay [] ply backEnd = backEnd
+-- insertPlay frontEnd ply backEnd = 
+--     if last frontEnd == Empty 
+--         then (init frontEnd) ++ [ply] ++ backEnd 
+--         else insertPlay (init frontEnd) ply ([last frontEnd] ++ backEnd)
+insertPlay :: Column -> Player -> Column -- changes the last empty spot in a column to a player
+insertPlay (Empty:rest) color = aux rest
+   where aux (Empty:rest) = Empty:(aux rest)
+         aux column = (color):column
 
 backGame :: Game -> Move -> Game -- finds the back set of columns in a game based on a move (inculding the changing column)
 backGame gm n = if n == 1 then gm else backGame (tail gm) (n-1)
@@ -68,10 +73,13 @@ legalMove gm n =
     else if colHasEmpty(dexColNum gm n) then True 
     else False
 
-makeMove :: Move -> Game -> Player -> Game -- makes a move in a game
-makeMove n gm ply = frntGm ++ [insertPlay (head bkGm) ply []] ++ (tail bkGm)
-    where bkGm = backGame gm n
-          frntGm = frontGame gm n
+makeMove :: Move -> GameState -> GameState -- makes a move in a game
+makeMove mv gmSt = ((switchPlayer ply), (frntGm ++ [insertPlay (head bkGm) ply] ++ (tail bkGm)))
+    where gm = snd gmSt
+          ply = fst gmSt
+          num = mv - 1
+          bkGm = drop num gm
+          frntGm = take num gm
 
 -- orentation functions
 
@@ -113,9 +121,10 @@ prettyPrintGame2 gm = " " ++ numString ++ "---" ++ barString ++ "|" ++ (init gam
 bars :: Char -> String -- adds bars to a string
 bars n = "|" ++ [n] -- ++ "|"
 
-prettyPrintGame :: Game -> String -- pretty prints a game
-prettyPrintGame gm = numString ++ "--" ++ barString ++ (init gameString)
-    where width = length gm
+prettyPrintGame :: GameState -> String -- pretty prints a game
+prettyPrintGame gmSt = numString ++ "--" ++ barString ++ (init gameString)
+    where gm = snd gmSt
+          width = length gm
           height = length (head gm)
           nGm = rotateGame2 gm
           nums = [" " ++ [intToChar x] | x <- [1..width]]
@@ -129,7 +138,7 @@ prettyPrintGame gm = numString ++ "--" ++ barString ++ (init gameString)
 printGame :: Game -> String -- prints a game
 printGame gm = gameToString (rotateGame2 gm)
 
-displayGame :: Game -> IO () -- displays a game
+displayGame :: GameState -> IO () -- displays a game
 displayGame gm = putStrLn (prettyPrintGame gm) --putStrLn (printGm gm) -- Non pretty print
 
 colToString :: Column -> String -- converts a column to a string
@@ -159,43 +168,47 @@ checkDiagonalWin gm ply = undefined
 checkWin :: Game -> Player -> Bool -- checks if a player has won
 checkWin gm ply = checkStraightWin (rotateGame gm) ply || checkStraightWin gm ply -- || checkDiagonalWin gm ply
 
+
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame gm = if checkWin gm Red then Red else if checkWin gm Black then Black else Empty
 
 -- Game play logic
 
-getAvailableMoves :: Game -> [Move] -- gets the available moves in a game
-getAvailableMoves gm = [x | x <- [1..length gm], legalMove gm x]
+getAvailableMoves :: GameState -> [Move] -- gets the available moves in a game
+getAvailableMoves gmSt = [x | x <- [1..length gm], legalMove gm x]
+    where gm = snd gmSt
 
-getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
-getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm ply) ply]
+-- getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
+-- getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm) ply]
 
-playGame :: Game -> Player -> IO () -- plays a game
-playGame gm ply = do
-    displayGame gm
+playGame :: GameState -> IO () -- plays a game
+playGame gmSt  = do
+    let ply = fst gmSt
+    let gm = snd gmSt
+    displayGame gmSt
     putStrLn "Enter a column number to make a move"
     col <- getLine
     if (col == "q") then putStrLn "Quitting" 
     else if not (legalMove gm (read col)) then do
         putStrLn "------Illegal move------"
-        playGame gm ply
+        playGame gmSt
     else do
-        let newGm = makeMove (read col) gm ply
-        if checkWin newGm ply 
+        let newGm = makeMove (read col) gmSt
+        if checkWin gm ply
         then do 
             putStrLn (prettyPrintGame newGm ++ "\n===" ++ show ply ++ " wins!===\n")
             putStrLn "Enter q to quit or anything else to play again"
             quit <- getLine
             if quit == "q" then putStrLn "Quitting"
-            else playGame (makeGame (length (head gm)) (length gm)) Red
+            else playGame (makeGameState (length (head gm)) (length gm))
         else if getAvailableMoves newGm == [] 
         then do 
             putStrLn (prettyPrintGame newGm ++ "\n===Tie game!===\n") 
             putStrLn "Enter q to quit or anything else to play again"
             quit <- getLine
             if quit == "q" then putStrLn "Quitting"
-            else playGame (makeGame (length (head gm)) (length gm)) Red
-        else playGame newGm (switchPlayer ply)
+            else playGame (makeGameState (length (head gm)) (length gm)) 
+        else playGame newGm
         --playGame newGm (switchPlayer ply)
 
 -- main :: IO () -- main that asks for number of rows and columns
@@ -208,4 +221,4 @@ playGame gm ply = do
 --     playGame gm Red
 
 main :: IO () -- main that uses constant number of rows and columns 
-main = playGame (makeGame 6 7) Red
+main = playGame (makeGameState 6 7)
