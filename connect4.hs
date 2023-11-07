@@ -2,6 +2,7 @@
 data Player = Red | Black | Empty deriving (Show, Eq)
 type Game = [[Player]]
 type Winner = Player
+type Move = Int
 -- stuff the needs to be done
 -- make game contain current player
 -- diagonal win check
@@ -28,8 +29,14 @@ playerToChar Empty = '.'
 
 -- move functions
 
-findColNum :: Game -> [Player] -> Int -> [Player] -- finds the nth column in a game
-findColNum gm backEnd n = if n == 1 then (head gm) ++ backEnd else findColNum (tail gm) ((head gm) ++ backEnd) (n-1)
+dexColNum :: Game -> Move -> [Player] -- finds the nth column in a game
+dexColNum gm 1 = head gm
+dexColNum gm n = dexColNum (tail gm) (n-1)
+
+colHasEmpty :: [Player] -> Bool -- checks if a column has an empty spot
+colHasEmpty [] = False
+colHasEmpty (x:xs) = if x == Empty then True else colHasEmpty xs
+
 
 insertPlay :: [Player] -> Player -> [Player] -> [Player] -- changes the last empty spot in a column to a player
 insertPlay [] ply backEnd = backEnd
@@ -38,16 +45,19 @@ insertPlay frontEnd ply backEnd =
         then (init frontEnd) ++ [ply] ++ backEnd 
         else insertPlay (init frontEnd) ply ([last frontEnd] ++ backEnd)
 
-backGame :: Game -> Int -> Game -- finds the nth column in a game
+backGame :: Game -> Move -> Game -- finds the nth column in a game
 backGame gm n = if n == 1 then gm else backGame (tail gm) (n-1)
 
-frontGame :: Game -> Int -> Game -- finds the nth column in a game
+frontGame :: Game -> Move -> Game -- finds the nth column in a game
 frontGame gm n = if n == length gm then init gm else frontGame (init gm) (n)
 
-canMakeMove :: Int -> Game -> Bool -- checks if a move can be made in a game
-canMakeMove n gm = if n > length (head gm) || n < 1 then False else True
+legalMove :: Game -> Move -> Bool -- checks if a move is legal
+legalMove gm n = 
+    if n > length gm || n < 1 then False 
+    else if colHasEmpty(dexColNum gm n) then True 
+    else False
 
-makeMove :: Int -> Game -> Player -> Game -- makes a move in a game
+makeMove :: Move -> Game -> Player -> Game -- makes a move in a game
 makeMove n gm ply = frntGm ++ [insertPlay (head bkGm) ply []] ++ (tail bkGm)
     where bkGm = backGame gm n
           frntGm = frontGame gm n
@@ -69,6 +79,8 @@ gameToString gm = if length gm == 0 then [] else function
 
 intToChar :: Int -> Char -- converts an int to a char
 intToChar n = head (show n)
+
+-- pretty print functions
 
 bars2 :: Char -> String
 bars2 n = "|" ++ [n] ++ "|"
@@ -129,12 +141,18 @@ checkWin gm ply = checkStraightWin (rotateGame gm) ply || checkStraightWin gm pl
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame gm = if checkWin gm Red then Red else if checkWin gm Black then Black else Empty
 
+winPrint :: Game -> String -- prints the winner of a game
+winPrint gm = if winnerOfGame gm == Red then "Red wins!" else if winnerOfGame gm == Black then "Black wins!" else "No winner"
+
 playGame :: Game -> Player -> IO () -- plays a game
 playGame gm ply = do
     displayGame gm
     putStrLn "Enter a column number to make a move"
     col <- getLine
     if (col == "q") then putStrLn "Quitting" 
+    else if not (legalMove gm (read col)) then do
+        putStrLn "------Illegal move------"
+        playGame gm ply
     else do
         let newGm = makeMove (read col) gm ply
         --if checkWin newGm ply then putStrLn (show ply ++ " wins!") else playGame newGm (switchPlayer ply)
