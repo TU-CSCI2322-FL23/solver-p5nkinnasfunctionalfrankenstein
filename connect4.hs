@@ -144,14 +144,14 @@ switchPlayer Black = Red
 isSubString :: String -> String -> Bool -- checks if a string is a substring of another string
 isSubString [] _ = True
 isSubString _ [] = False
-isSubString (x:xs) (y:ys) = if x == y then isSubString xs ys else isSubString (x:xs) ys
+isSubString (x:xs) (y:ys) = if x == y then isSubString xs ys else isSubString (x:xs) ys -- dose not check for spaces
 
 -- Winner logic
 
 checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
 checkStraightWin gm ply = [True | x <- strLst, isSubString plyStr x] /= []
     where strLst = map colToString gm
-          plyStr = [playerToChar ply | x <- [1..4]]
+          plyStr = [playerToChar ply | x <- [1..4]] 
 
 checkDiagonalWin :: Game -> Player -> Bool -- checks if a player has won diagonally
 checkDiagonalWin gm ply = undefined
@@ -182,9 +182,19 @@ playGame gm ply = do
     else do
         let newGm = makeMove (read col) gm ply
         if checkWin newGm ply 
-        then do putStrLn (prettyPrintGame newGm ++ "\n=====" ++ show ply ++ " wins!=====\n")
+        then do 
+            putStrLn (prettyPrintGame newGm ++ "\n=====" ++ show ply ++ " wins!=====\n")
+            putStrLn "Enter q to quit or anything else to play again"
+            quit <- getLine
+            if quit == "q" then putStrLn "Quitting"
+            else playGame (makeGame (length (head gm)) (length gm)) Red
         else if getAvailableMoves newGm == [] 
-        then do putStrLn (prettyPrintGame newGm ++ "\n=====Tie game!===== \n") 
+        then do 
+            putStrLn (prettyPrintGame newGm ++ "\n=====Tie game!=====\n") 
+            putStrLn "Enter q to quit or anything else to play again"
+            quit <- getLine
+            if quit == "q" then putStrLn "Quitting"
+            else playGame (makeGame (length (head gm)) (length gm)) Red
         else playGame newGm (switchPlayer ply)
         --playGame newGm (switchPlayer ply)
 
