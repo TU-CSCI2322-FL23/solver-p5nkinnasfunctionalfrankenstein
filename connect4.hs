@@ -1,6 +1,7 @@
 
 data Player = Red | Black | Empty deriving (Show, Eq)
-type Game = [[Player]]
+type Column = [Player]
+type Game = [Column]
 type Winner = Player
 type Move = Int
 
@@ -39,16 +40,16 @@ playerToChar Empty = '.'
 
 -- move functions
 
-dexColNum :: Game -> Move -> [Player] -- finds the nth column in a game
+dexColNum :: Game -> Move -> Column -- finds the nth column in a game
 dexColNum gm 1 = head gm
 dexColNum gm n = dexColNum (tail gm) (n-1)
 
-colHasEmpty :: [Player] -> Bool -- checks if a column has an empty spot
+colHasEmpty :: Column -> Bool -- checks if a column has an empty spot
 colHasEmpty [] = False
 colHasEmpty (x:xs) = if x == Empty then True else colHasEmpty xs
 
 
-insertPlay :: [Player] -> Player -> [Player] -> [Player] -- changes the last empty spot in a column to a player
+insertPlay :: Column -> Player -> Column -> Column -- changes the last empty spot in a column to a player
 insertPlay [] ply backEnd = backEnd
 insertPlay frontEnd ply backEnd = 
     if last frontEnd == Empty 
@@ -131,6 +132,8 @@ printGame gm = gameToString (rotateGame2 gm)
 displayGame :: Game -> IO () -- displays a game
 displayGame gm = putStrLn (prettyPrintGame gm) --putStrLn (printGm gm) -- Non pretty print
 
+colToString :: Column -> String -- converts a column to a string
+colToString col = (map playerToChar col)
 
 --player logic
 
@@ -138,11 +141,17 @@ switchPlayer :: Player -> Player -- switches player
 switchPlayer Red = Black
 switchPlayer Black = Red
 
+isSubString :: String -> String -> Bool -- checks if a string is a substring of another string
+isSubString [] _ = True
+isSubString _ [] = False
+isSubString (x:xs) (y:ys) = if x == y then isSubString xs ys else isSubString (x:xs) ys
+
 -- Winner logic
 
 checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
-checkStraightWin gm ply = if length gm < 4 then False else function
-    where function = checkStraightWin (tail gm) ply || checkStraightWin (init gm) ply || checkStraightWin (tail gm) ply || checkStraightWin (init gm) ply
+checkStraightWin gm ply = [True | x <- strLst, isSubString plyStr x] /= []
+    where strLst = map colToString gm
+          plyStr = [playerToChar ply | x <- [1..4]]
 
 checkDiagonalWin :: Game -> Player -> Bool -- checks if a player has won diagonally
 checkDiagonalWin gm ply = undefined
@@ -172,7 +181,10 @@ playGame gm ply = do
         playGame gm ply
     else do
         let newGm = makeMove (read col) gm ply
-        if checkWin newGm ply then putStrLn (show ply ++ " wins!") 
+        if checkWin newGm ply 
+        then do putStrLn (prettyPrintGame newGm ++ "\n=====" ++ show ply ++ " wins!=====\n")
+        else if getAvailableMoves newGm == [] 
+        then do putStrLn (prettyPrintGame newGm ++ "\n=====Tie game!===== \n") 
         else playGame newGm (switchPlayer ply)
         --playGame newGm (switchPlayer ply)
 
