@@ -3,17 +3,27 @@ data Player = Red | Black | Empty deriving (Show, Eq)
 type Game = [[Player]]
 type Winner = Player
 type Move = Int
+
+-- class GameState a where 
+--     winnerOfGame :: a -> Winner
+--     makeMove :: Move -> a -> Player -> a
+--     getAvailableMoves :: a -> [Move]
+--     getWinningMoves :: a -> Player -> [Move]
+--     playGame :: a -> Player -> IO ()
+--     game :: Game
+
+
 -- stuff the needs to be done
 -- make game contain current player
 -- diagonal win check
 -- add current player to makeMove
 -- check legal moves (Done)
 
--- Define data types or type aliases for a player, game state, move, and winner.
+-- Define data types or type aliases for a player, game state, move, and winner. 
 
--- Be able to determine who has won the game state, if anyone.
+-- Be able to determine who has won the game state, if anyone. (In progress)
 
--- Be able to compute the result of making a legal move in a game state. 
+-- Be able to compute the result of making a legal move in a game state. (Done)
 
 -- Be able to compute the legal moves from a game state. (Done)
 
@@ -115,9 +125,11 @@ prettyPrintGame gm = numString ++ "--" ++ barString ++ (init gameString)
           barString = concat bar ++ "\n"
           gameString = concat gameBars
 
+printGame :: Game -> String -- prints a game
+printGame gm = gameToString (rotateGame2 gm)
+
 displayGame :: Game -> IO () -- displays a game
-displayGame gm = putStrLn (prettyPrintGame gm)
-    --putStrLn (gameToString (rotateGame2 gm))
+displayGame gm = putStrLn (prettyPrintGame gm) --putStrLn (printGm gm) -- Non pretty print
 
 
 --player logic
@@ -141,16 +153,13 @@ checkWin gm ply = checkStraightWin (rotateGame gm) ply || checkStraightWin gm pl
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame gm = if checkWin gm Red then Red else if checkWin gm Black then Black else Empty
 
-winPrint :: Game -> String -- prints the winner of a game
-winPrint gm = if winnerOfGame gm == Red then "Red wins!" else if winnerOfGame gm == Black then "Black wins!" else "No winner"
+-- Game play logic
 
 getAvailableMoves :: Game -> [Move] -- gets the available moves in a game
 getAvailableMoves gm = [x | x <- [1..length gm], legalMove gm x]
 
 getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
 getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm ply) ply]
-
--- Game play
 
 playGame :: Game -> Player -> IO () -- plays a game
 playGame gm ply = do
