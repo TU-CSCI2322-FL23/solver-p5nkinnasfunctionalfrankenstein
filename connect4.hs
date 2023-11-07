@@ -56,10 +56,10 @@ insertPlay frontEnd ply backEnd =
         then (init frontEnd) ++ [ply] ++ backEnd 
         else insertPlay (init frontEnd) ply ([last frontEnd] ++ backEnd)
 
-backGame :: Game -> Move -> Game -- finds the nth column in a game
+backGame :: Game -> Move -> Game -- finds the back set of columns in a game based on a move (inculding the changing column)
 backGame gm n = if n == 1 then gm else backGame (tail gm) (n-1)
 
-frontGame :: Game -> Move -> Game -- finds the nth column in a game
+frontGame :: Game -> Move -> Game -- finds the front set of columns in a game based on a move (not inculding the changing column)
 frontGame gm n = if n == length gm then init gm else frontGame (init gm) (n)
 
 legalMove :: Game -> Move -> Bool -- checks if a move is legal
@@ -78,7 +78,7 @@ makeMove n gm ply = frntGm ++ [insertPlay (head bkGm) ply []] ++ (tail bkGm)
 rotateGame :: Game -> Game -- rotates a game 90 degrees
 rotateGame gm = if length (head gm) == 0 then [] else (map last gm) : rotateGame (map init gm)
 
-rotateGame2 :: Game -> Game -- rotates a game 90 degrees
+rotateGame2 :: Game -> Game -- rotates a game 90 degrees the other way
 rotateGame2 gm = if length (last gm) == 0 then [] else (map head gm) : rotateGame2 (map tail gm)
 
 flipHorizontal :: Game -> Game -- flips a game horizontally
@@ -93,7 +93,7 @@ intToChar n = head (show n)
 
 -- pretty print functions
 
-bars2 :: Char -> String
+bars2 :: Char -> String -- adds bars to a string
 bars2 n = "|" ++ [n] ++ "|"
 
 prettyPrintGame2 :: Game -> String -- pretty prints a game
@@ -110,7 +110,7 @@ prettyPrintGame2 gm = " " ++ numString ++ "---" ++ barString ++ "|" ++ (init gam
           gameString = concat gameBars
 
 
-bars :: Char -> String
+bars :: Char -> String -- adds bars to a string
 bars n = "|" ++ [n] -- ++ "|"
 
 prettyPrintGame :: Game -> String -- pretty prints a game
