@@ -7,15 +7,15 @@ type Move = Int
 -- make game contain current player
 -- diagonal win check
 -- add current player to makeMove
--- check legal moves
+-- check legal moves (Done)
 
 -- Define data types or type aliases for a player, game state, move, and winner.
 
 -- Be able to determine who has won the game state, if anyone.
 
--- Be able to compute the result of making a legal move in a game state.
+-- Be able to compute the result of making a legal move in a game state. 
 
--- Be able to compute the legal moves from a game state.
+-- Be able to compute the legal moves from a game state. (Done)
 
 -- (If time) Be able to pretty-print a game into a string. (Done)
 
@@ -126,7 +126,7 @@ switchPlayer :: Player -> Player -- switches player
 switchPlayer Red = Black
 switchPlayer Black = Red
 
--- game logic
+-- Winner logic
 
 checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
 checkStraightWin gm ply = if length gm < 4 then False else function
@@ -143,6 +143,14 @@ winnerOfGame gm = if checkWin gm Red then Red else if checkWin gm Black then Bla
 
 winPrint :: Game -> String -- prints the winner of a game
 winPrint gm = if winnerOfGame gm == Red then "Red wins!" else if winnerOfGame gm == Black then "Black wins!" else "No winner"
+
+getAvailableMoves :: Game -> [Move] -- gets the available moves in a game
+getAvailableMoves gm = [x | x <- [1..length gm], legalMove gm x]
+
+getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
+getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm ply) ply]
+
+-- Game play
 
 playGame :: Game -> Player -> IO () -- plays a game
 playGame gm ply = do
