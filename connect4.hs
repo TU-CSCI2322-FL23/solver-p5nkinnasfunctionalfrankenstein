@@ -148,7 +148,7 @@ checkDiagonalWin :: Game -> Player -> Bool -- checks if a player has won diagona
 checkDiagonalWin gm ply = undefined
 
 checkWin :: Game -> Player -> Bool -- checks if a player has won
-checkWin gm ply = checkStraightWin (rotateGame gm) ply || checkStraightWin gm ply || checkDiagonalWin gm ply
+checkWin gm ply = checkStraightWin (rotateGame gm) ply || checkStraightWin gm ply -- || checkDiagonalWin gm ply
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame gm = if checkWin gm Red then Red else if checkWin gm Black then Black else Empty
@@ -172,8 +172,9 @@ playGame gm ply = do
         playGame gm ply
     else do
         let newGm = makeMove (read col) gm ply
-        --if checkWin newGm ply then putStrLn (show ply ++ " wins!") else playGame newGm (switchPlayer ply)
-        playGame newGm (switchPlayer ply)
+        if checkWin newGm ply then putStrLn (show ply ++ " wins!") 
+        else playGame newGm (switchPlayer ply)
+        --playGame newGm (switchPlayer ply)
 
 -- main :: IO () -- main that asks for number of rows and columns
 -- main = do
