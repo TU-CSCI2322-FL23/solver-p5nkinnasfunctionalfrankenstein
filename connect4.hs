@@ -16,7 +16,7 @@ type Winner = Player
 
 -- Be able to compute the legal moves from a game state.
 
--- (If time) Be able to pretty-print a game into a string.
+-- (If time) Be able to pretty-print a game into a string. (Done)
 
 makeGame :: Int -> Int -> Game -- makes a blank game of size n x m
 makeGame n m = [[Empty | x <- [1..n]] | y <- [1..m]]
@@ -92,8 +92,8 @@ bars n = "|" ++ [n] -- ++ "|"
 
 prettyPrintGame :: Game -> String -- pretty prints a game
 prettyPrintGame gm = numString ++ "--" ++ barString ++ (init gameString)
-    where width = length (head gm)
-          height = length gm
+    where width = length gm
+          height = length (head gm)
           nGm = rotateGame2 gm
           nums = [" " ++ [intToChar x] | x <- [1..width]]
           bar = ["--" | x <- [1..width]]
@@ -150,4 +150,4 @@ playGame gm ply = do
 --     playGame gm Red
 
 main :: IO () -- main that uses constant number of rows and columns 
-main = playGame (makeGame 6 6) Red
+main = playGame (makeGame 6 7) Red
