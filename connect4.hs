@@ -6,14 +6,6 @@ type GameState = (Player, Game)
 type Winner = Player
 type Move = Int
 
--- class GameState a where 
---     winnerOfGame :: a -> Winner
---     makeMove :: Move -> a -> Player -> a
---     getAvailableMoves :: a -> [Move]
---     getWinningMoves :: a -> Player -> [Move]
---     playGame :: a -> Player -> IO ()
---     game :: Game
-
 
 -- stuff the needs to be done
 -- make game contain current player
@@ -49,23 +41,10 @@ colHasEmpty :: Column -> Bool -- checks if a column has an empty spot
 colHasEmpty [] = False
 colHasEmpty (x:xs) = if x == Empty then True else colHasEmpty xs
 
-
--- insertPlay :: Column -> Player -> Column -> Column -- changes the last empty spot in a column to a player
--- insertPlay [] ply backEnd = backEnd
--- insertPlay frontEnd ply backEnd = 
---     if last frontEnd == Empty 
---         then (init frontEnd) ++ [ply] ++ backEnd 
---         else insertPlay (init frontEnd) ply ([last frontEnd] ++ backEnd)
 insertPlay :: Column -> Player -> Column -- changes the last empty spot in a column to a player
 insertPlay (Empty:rest) color = aux rest
    where aux (Empty:rest) = Empty:(aux rest)
          aux column = (color):column
-
-backGame :: Game -> Move -> Game -- finds the back set of columns in a game based on a move (inculding the changing column)
-backGame gm n = if n == 1 then gm else backGame (tail gm) (n-1)
-
-frontGame :: Game -> Move -> Game -- finds the front set of columns in a game based on a move (not inculding the changing column)
-frontGame gm n = if n == length gm then init gm else frontGame (init gm) (n)
 
 legalMove :: Game -> Move -> Bool -- checks if a move is legal
 legalMove gm n = 
@@ -83,14 +62,8 @@ makeMove mv gmSt = ((switchPlayer ply), (frntGm ++ [insertPlay (head bkGm) ply] 
 
 -- orentation functions
 
-rotateGame :: Game -> Game -- rotates a game 90 degrees
-rotateGame gm = if length (head gm) == 0 then [] else (map last gm) : rotateGame (map init gm)
-
-rotateGame2 :: Game -> Game -- rotates a game 90 degrees the other way
-rotateGame2 gm = if length (last gm) == 0 then [] else (map head gm) : rotateGame2 (map tail gm)
-
-flipHorizontal :: Game -> Game -- flips a game horizontally
-flipHorizontal gm = if length gm == 0 then [] else (reverse (head gm)) : flipHorizontal (tail gm)
+rotateGame :: Game -> Game -- rotates a game 90 degrees the other way
+rotateGame gm = if length (last gm) == 0 then [] else (map head gm) : rotateGame (map tail gm)
 
 gameToString :: Game -> String -- converts a game to a string
 gameToString gm = if length gm == 0 then [] else function
@@ -100,24 +73,6 @@ intToChar :: Int -> Char -- converts an int to a char
 intToChar n = head (show n)
 
 -- pretty print functions
-
-bars2 :: Char -> String -- adds bars to a string
-bars2 n = "|" ++ [n] ++ "|"
-
-prettyPrintGame2 :: Game -> String -- pretty prints a game
-prettyPrintGame2 gm = " " ++ numString ++ "---" ++ barString ++ "|" ++ (init gameString)
-    where width = length (head gm)
-          height = length gm
-          nGm = rotateGame2 gm
-          nums = [" " ++ [intToChar x] ++ " " | x <- [1..width]]
-          bar = ["---" | x <- [1..width]]
-          game = (map playerToChar (head nGm)) ++ "\n" ++ gameToString (tail nGm)
-          gameBars = [bars2 x | x <- game]
-          numString = concat nums ++ "\n"
-          barString = concat bar ++ "\n"
-          gameString = concat gameBars
-
-
 bars :: Char -> String -- adds bars to a string
 bars n = "|" ++ [n] -- ++ "|"
 
@@ -126,7 +81,7 @@ prettyPrintGame gmSt = numString ++ "--" ++ barString ++ (init gameString)
     where gm = snd gmSt
           width = length gm
           height = length (head gm)
-          nGm = rotateGame2 gm
+          nGm = rotateGame gm
           nums = [" " ++ [intToChar x] | x <- [1..width]]
           bar = ["--" | x <- [1..width]]
           game = (map playerToChar (head nGm)) ++ "\n" ++ gameToString (tail nGm)
@@ -136,13 +91,10 @@ prettyPrintGame gmSt = numString ++ "--" ++ barString ++ (init gameString)
           gameString = concat gameBars
 
 printGame :: Game -> String -- prints a game
-printGame gm = gameToString (rotateGame2 gm)
+printGame gm = gameToString (rotateGame gm)
 
 displayGame :: GameState -> IO () -- displays a game
 displayGame gm = putStrLn (prettyPrintGame gm) --putStrLn (printGm gm) -- Non pretty print
-
-colToString :: Column -> String -- converts a column to a string
-colToString col = (map playerToChar col)
 
 --player logic
 
@@ -150,24 +102,16 @@ switchPlayer :: Player -> Player -- switches player
 switchPlayer Red = Black
 switchPlayer Black = Red
 
-isSubString :: String -> String -> Bool -- checks if a string is a substring of another string
-isSubString [] _ = True
-isSubString _ [] = False
-isSubString (x:xs) (y:ys) = if x == y then isSubString xs ys else isSubString (x:xs) ys -- dose not check for spaces
-
 -- Winner logic
 
 checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
-checkStraightWin gm ply = [True | x <- strLst, isSubString plyStr x] /= []
-    where strLst = map colToString gm
-          plyStr = [playerToChar ply | x <- [1..4]] 
+checkStraightWin gm ply = undefined
 
 checkDiagonalWin :: Game -> Player -> Bool -- checks if a player has won diagonally
 checkDiagonalWin gm ply = undefined
 
 checkWin :: Game -> Player -> Bool -- checks if a player has won
-checkWin gm ply = checkStraightWin (rotateGame gm) ply || checkStraightWin gm ply -- || checkDiagonalWin gm ply
-
+checkWin gm ply = False -- checkStraightWin (rotateGame gm) ply || checkStraightWin gm ply -- || checkDiagonalWin gm ply
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame gm = if checkWin gm Red then Red else if checkWin gm Black then Black else Empty
