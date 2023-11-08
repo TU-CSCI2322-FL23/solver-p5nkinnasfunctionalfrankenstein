@@ -109,18 +109,10 @@ isSubString [] _ = True
 isSubString _ [] = False
 isSubString (x:xs) (y:ys) = if x == y then isSubString xs ys else isSubString (x:xs) ys -- dose not check for spaces
 
-
 colToString :: Column -> String -- converts a column to a string
 colToString col = (map playerToChar col)
 
 -- Winner logic
-
-checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
-checkStraightWin gm ply = [True | x <- strLst, isSubString plyStr x] /= []
-    where strLst = map colToString gm
-          plyStr = [playerToChar ply | x <- [1..4]] 
-
-
 
 checkHorizontalWin :: Game -> Player -> Bool
 checkHorizontalWin game player = any (isSubString playerString) $ map colToString game
@@ -154,9 +146,6 @@ checkDiagonalWin game player = any (isSubString playerString) $ map (map playerT
 checkWin :: Game -> Player -> Bool -- checks if a player has won
 checkWin gm ply = checkHorizontalWin gm ply || checkHorizontalWin (rotateGame gm) ply || checkDiagonalWin gm ply
 
-
-
-
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame game
   | checkHorizontalWin game Red || checkDiagonalWin game Red = Red
@@ -169,6 +158,8 @@ getAvailableMoves :: GameState -> [Move] -- gets the available moves in a game
 getAvailableMoves gmSt = [x | x <- [1..length gm], legalMove gm x]
     where gm = snd gmSt
 
+
+-- printing logic
 playerWon :: Game -> Player -> IO () -- checks if a player has won
 playerWon gm ply = do     
             putStrLn (prettyPrintGame gm ++ "\n===" ++ show ply ++ " wins!===\n")
