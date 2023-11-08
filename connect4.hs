@@ -3,7 +3,7 @@ data Player = Red | Black | Empty deriving (Show, Eq)
 type Column = [Player]
 type Game = [Column]
 type GameState = (Player, Game)
-type Winner = Player
+type Winner = Maybe Player
 type Move = Int
 
 
@@ -154,19 +154,17 @@ diagonals2 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x +
           | i < width && j < height = (g !! j !! i) : diag g (i+1, j+1)
           | otherwise = []
 
--- Check if any diagonal contains four of the same player in a row
-checkDiagonalWin :: Game -> Player -> Bool
-checkDiagonalWin game player = any (isSubString playerString) $ map (map playerToChar) (diagonals1 game ++ diagonals2 game)
-  where playerString = replicate 4 (playerToChar player)
+checkDiagonalWin :: Game -> Player -> Bool -- checks if a player has won in a diagonal line
+checkDiagonalWin gm ply = any (fourInRow ply) (diagonals1 gm ++ diagonals2 gm)
 
 checkWin :: Game -> Player -> Bool -- checks if a player has won
 checkWin gm ply = checkStraightWin gm ply || checkStraightWin (rotateGame gm) ply || checkDiagonalWin gm ply
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame game
-  | checkStraightWin game Red || checkDiagonalWin game Red = Red
-  | checkStraightWin game Black || checkDiagonalWin game Black = Black
-  | otherwise = Empty
+  | checkWin game Red = Just Red
+  | checkWin game Black = Just Black
+  | otherwise = Nothing
 
 -- Game play logic
 
