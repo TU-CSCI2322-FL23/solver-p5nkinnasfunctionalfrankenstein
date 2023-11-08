@@ -10,12 +10,12 @@ type Move = Int
 -- stuff the needs to be done
 -- make game contain current player
 -- diagonal win check
--- add current player to makeMove
+-- add current player to makeMove 
 -- check legal moves (Done)
 
--- Define data types or type aliases for a player, game state, move, and winner. 
+-- Define data types or type aliases for a player, game state, move, and winner. (Done)
 
--- Be able to determine who has won the game state, if anyone. (In progress)
+-- Be able to determine who has won the game state, if anyone. (Done)
 
 -- Be able to compute the result of making a legal move in a game state. (Done)
 
@@ -74,7 +74,7 @@ intToChar n = head (show n)
 
 -- pretty print functions
 bars :: Char -> String -- adds bars to a string
-bars n = "|" ++ [n] -- ++ "|"
+bars n = "|" ++ [n]
 
 prettyPrintGame :: Game -> String -- pretty prints a game
 prettyPrintGame gm = numString ++ "--" ++ barString ++ (init gameString)
@@ -114,13 +114,12 @@ colToString col = (map playerToChar col)
 
 -- Winner logic
 
-checkHorizontalWin :: Game -> Player -> Bool
+checkHorizontalWin :: Game -> Player -> Bool -- checks if a horizontal win has occured
 checkHorizontalWin game player = any (isSubString playerString) $ map colToString game
   where
     playerString = replicate 4 (playerToChar player)
 
--- Check this type of diagonal (/)
-diagonals1 :: Game -> [[Player]]
+diagonals1 :: Game -> [[Player]] -- Check this type of diagonal (/)
 diagonals1 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x <= y]
   where height = length game
         width = length (head game)
@@ -128,8 +127,7 @@ diagonals1 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x <
           | i < width && j >= 0 = (g !! j !! i) : diag g (i+1, j-1)
           | otherwise = []
 
--- Check this type of diagonal (\)
-diagonals2 :: Game -> [[Player]]
+diagonals2 :: Game -> [[Player]] -- Check this type of diagonal (\)
 diagonals2 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x + y < height]
   where height = length game
         width = length (head game)
@@ -141,7 +139,6 @@ diagonals2 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x +
 checkDiagonalWin :: Game -> Player -> Bool
 checkDiagonalWin game player = any (isSubString playerString) $ map (map playerToChar) (diagonals1 game ++ diagonals2 game)
   where playerString = replicate 4 (playerToChar player)
-
 
 checkWin :: Game -> Player -> Bool -- checks if a player has won
 checkWin gm ply = checkHorizontalWin gm ply || checkHorizontalWin (rotateGame gm) ply || checkDiagonalWin gm ply
@@ -157,7 +154,6 @@ winnerOfGame game
 getAvailableMoves :: GameState -> [Move] -- gets the available moves in a game
 getAvailableMoves gmSt = [x | x <- [1..length gm], legalMove gm x]
     where gm = snd gmSt
-
 
 -- printing logic
 playerWon :: Game -> Player -> IO () -- checks if a player has won
@@ -176,6 +172,7 @@ gameTie gmSt = do
             if quit == "q" then putStrLn "Quitting"
             else playGame (makeGameState (length (head gm)) (length gm)) 
     where gm = snd gmSt
+    
 -- getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
 -- getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm) ply]
 
@@ -202,7 +199,6 @@ playGame gmSt  = do
         else if getAvailableMoves newGmSt == [] 
         then gameTie newGmSt 
         else playGame newGmSt
-        --playGame newGm (switchPlayer ply)
 
 -- main :: IO () -- main that asks for number of rows and columns
 -- main = do
