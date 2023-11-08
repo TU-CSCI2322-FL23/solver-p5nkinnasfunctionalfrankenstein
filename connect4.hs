@@ -101,6 +101,9 @@ switchPlayer :: Player -> Player -- switches player
 switchPlayer Red = Black
 switchPlayer Black = Red
 
+changePlayer :: GameState -> GameState -- changes the player in a game state
+changePlayer gmSt = (switchPlayer (fst gmSt), snd gmSt)
+
 isSubString :: String -> String -> Bool -- checks if a string is a substring of another string
 isSubString [] _ = True
 isSubString _ [] = False
