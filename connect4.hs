@@ -153,14 +153,27 @@ checkStraightWin gm ply = [True | x <- strLst, isSubString plyStr x] /= []
     where strLst = map colToString gm
           plyStr = [playerToChar ply | x <- [1..4]] 
 
-checkDiagonalWin :: Game -> Player -> Bool -- checks if a player has won diagonally
-checkDiagonalWin gm ply = undefined
+
+
+checkHorizontalWin :: Game -> Player -> Bool
+checkHorizontalWin game player = any (isSubString playerString) $ map colToString game
+  where
+    playerString = replicate 4 (playerToChar player)
+
+-- Function to check for diagonal wins by reusing the horizontal win check
+checkDiagonalWin :: Game -> Player -> Bool
+checkDiagonalWin game player =
+  let diagonals = rotateGame game ++ rotateGame (flipHorizontal game)
+  in any (`checkHorizontalWin` player) diagonals
 
 checkWin :: Game -> Player -> Bool -- checks if a player has won
 checkWin gm ply = checkStraightWin (rotateGame gm) ply || checkStraightWin gm ply -- || checkDiagonalWin gm ply
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
-winnerOfGame gm = if checkWin gm Red then Red else if checkWin gm Black then Black else Empty
+winnerOfGame game
+  | checkHorizontalWin game Red || checkDiagonalWin game Red = Red
+  | checkHorizontalWin game Black || checkDiagonalWin game Black = Black
+  | otherwise = Empty
 
 -- Game play logic
 
