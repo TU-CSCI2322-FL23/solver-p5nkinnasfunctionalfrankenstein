@@ -102,6 +102,15 @@ switchPlayer :: Player -> Player -- switches player
 switchPlayer Red = Black
 switchPlayer Black = Red
 
+isSubString :: String -> String -> Bool -- checks if a string is a substring of another string
+isSubString [] _ = True
+isSubString _ [] = False
+isSubString (x:xs) (y:ys) = if x == y then isSubString xs ys else isSubString (x:xs) ys -- dose not check for spaces
+
+
+colToString :: Column -> String -- converts a column to a string
+colToString col = (map playerToChar col)
+
 -- Winner logic
 
 checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
