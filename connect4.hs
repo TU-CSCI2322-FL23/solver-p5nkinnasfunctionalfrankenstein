@@ -114,7 +114,9 @@ colToString col = (map playerToChar col)
 -- Winner logic
 
 checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
-checkStraightWin gm ply = undefined
+checkStraightWin gm ply = [True | x <- strLst, isSubString plyStr x] /= []
+    where strLst = map colToString gm
+          plyStr = [playerToChar ply | x <- [1..4]] 
 
 
 
