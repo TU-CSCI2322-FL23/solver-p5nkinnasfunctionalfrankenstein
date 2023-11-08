@@ -114,10 +114,30 @@ colToString col = (map playerToChar col)
 
 -- Winner logic
 
-checkHorizontalWin :: Game -> Player -> Bool -- checks if a horizontal win has occured
-checkHorizontalWin game player = any (isSubString playerString) $ map colToString game
+
+checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
+checkStraightWin gm ply = any (fourInRow ply) columns
   where
-    playerString = replicate 4 (playerToChar player)
+    columns = transposeGame gm
+
+fourInRow :: Eq a => a -> [a] -> Bool -- checks if there are 4 of the same element in a row
+fourInRow elem lst = aux lst 0
+  where
+    aux [] count = count >= 3
+    aux (x:xs) count
+      | x == elem = aux xs (count + 1)
+      | otherwise = aux xs 0
+
+transposeGame :: Game -> Game -- allows checkStraightWin to read the columns
+transposeGame [] = []
+transposeGame ([]:_) = []
+transposeGame gm = map head gm : transposeGame (map tail gm)
+
+
+-- checkHorizontalWin :: Game -> Player -> Bool -- checks if a horizontal win has occured
+-- checkHorizontalWin game player = any (isSubString playerString) $ map colToString game
+--   where
+--     playerString = replicate 4 (playerToChar player)
 
 diagonals1 :: Game -> [[Player]] -- Check this type of diagonal (/)
 diagonals1 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x <= y]
@@ -141,7 +161,7 @@ checkDiagonalWin game player = any (isSubString playerString) $ map (map playerT
   where playerString = replicate 4 (playerToChar player)
 
 checkWin :: Game -> Player -> Bool -- checks if a player has won
-checkWin gm ply = checkHorizontalWin gm ply || checkHorizontalWin (rotateGame gm) ply || checkDiagonalWin gm ply
+checkWin gm ply = checkStraightWin gm ply || checkStraightWin (rotateGame gm) ply || checkDiagonalWin gm ply
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame game
