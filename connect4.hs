@@ -148,13 +148,9 @@ checkDiagonalWin game player = any (isSubString playerString) $ map (map playerT
   where playerString = replicate 4 (playerToChar player)
 
 
-checkWin :: GameState -> Bool -- checks if a player has won
-checkWin gmSt = checkHorizontalWin gm ply || checkHorizontalWin (rotateGame gm) ply || checkDiagonalWin gm ply
-    where gm = snd gmSt
-          ply = fst gmSt
+checkWin :: Game -> Player -> Bool -- checks if a player has won
+checkWin gm ply = checkHorizontalWin gm ply || checkHorizontalWin (rotateGame gm) ply || checkDiagonalWin gm ply
 
-checkBothWin :: GameState -> Bool -- checks if both players have won
-checkBothWin gmSt = checkWin gmSt && checkWin (switchPlayer (fst gmSt), snd gmSt)
 
 
 
@@ -170,37 +166,47 @@ getAvailableMoves :: GameState -> [Move] -- gets the available moves in a game
 getAvailableMoves gmSt = [x | x <- [1..length gm], legalMove gm x]
     where gm = snd gmSt
 
+playerWon :: Game -> Player -> IO () -- checks if a player has won
+playerWon gm ply = do     
+            putStrLn (prettyPrintGame gm ++ "\n===" ++ show ply ++ " wins!===\n")
+            putStrLn "Enter q to quit or anything else to play again"
+            quit <- getLine
+            if quit == "q" then putStrLn "Quitting"
+            else playGame (makeGameState (length (head gm)) (length gm))
+
+gameTie :: GameState -> IO () -- checks if a game is a tie
+gameTie gmSt = do
+            putStrLn (prettyPrintGame gm ++ "\n===Tie game!===\n") 
+            putStrLn "Enter q to quit or anything else to play again"
+            quit <- getLine
+            if quit == "q" then putStrLn "Quitting"
+            else playGame (makeGameState (length (head gm)) (length gm)) 
+    where gm = snd gmSt
 -- getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
 -- getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm) ply]
 
 playGame :: GameState -> IO () -- plays a game
 playGame gmSt  = do
     let ply = fst gmSt
-    let gm = snd gmSt
+        gm = snd gmSt
     displayGame gm
+
     putStrLn "Enter a column number to make a move"
     col <- getLine
     if (col == "q") then putStrLn "Quitting" 
+    
     else if not (legalMove gm (read col)) then do
         putStrLn "------Illegal move------"
         playGame gmSt
     else do
         let newGmSt = makeMove (read col) gmSt
             newGm = snd newGmSt
-        if checkWin newGmSt
-        then do 
-            putStrLn (prettyPrintGame newGm ++ "\n===" ++ show ply ++ " wins!===\n")
-            putStrLn "Enter q to quit or anything else to play again"
-            quit <- getLine
-            if quit == "q" then putStrLn "Quitting"
-            else playGame (makeGameState (length (head gm)) (length gm))
+            newPly = fst newGmSt
+
+        if checkWin newGm ply
+        then playerWon newGm ply
         else if getAvailableMoves newGmSt == [] 
-        then do 
-            putStrLn (prettyPrintGame newGm ++ "\n===Tie game!===\n") 
-            putStrLn "Enter q to quit or anything else to play again"
-            quit <- getLine
-            if quit == "q" then putStrLn "Quitting"
-            else playGame (makeGameState (length (head gm)) (length gm)) 
+        then gameTie newGmSt 
         else playGame newGmSt
         --playGame newGm (switchPlayer ply)
 
