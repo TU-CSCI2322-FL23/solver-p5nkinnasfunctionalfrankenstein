@@ -114,9 +114,22 @@ colToString col = (map playerToChar col)
 -- Winner logic
 
 checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
-checkStraightWin gm ply = [True | x <- strLst, isSubString plyStr x] /= []
-    where strLst = map colToString gm
-          plyStr = [playerToChar ply | x <- [1..4]] 
+checkStraightWin gm ply = any (fourInRow ply) columns
+  where
+    columns = transposeGame gm
+
+fourInRow :: Eq a => a -> [a] -> Bool -- checks if there are 4 of the same element in a row
+fourInRow elem lst = aux lst 0
+  where
+    aux [] count = count >= 3
+    aux (x:xs) count
+      | x == elem = aux xs (count + 1)
+      | otherwise = aux xs 0
+
+transposeGame :: Game -> Game -- allows checkStraightWin to read the columns
+transposeGame [] = []
+transposeGame ([]:_) = []
+transposeGame gm = map head gm : transposeGame (map tail gm)
 
 
 
