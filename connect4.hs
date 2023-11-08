@@ -56,7 +56,7 @@ makeMove :: Move -> GameState -> GameState -- makes a move in a game
 makeMove mv gmSt = ((switchPlayer ply), (frntGm ++ [insertPlay (head bkGm) ply] ++ (tail bkGm)))
     where gm = snd gmSt
           ply = fst gmSt
-          num = mv - 1
+          num = mv-1
           bkGm = drop num gm
           frntGm = take num gm
 
@@ -76,10 +76,9 @@ intToChar n = head (show n)
 bars :: Char -> String -- adds bars to a string
 bars n = "|" ++ [n] -- ++ "|"
 
-prettyPrintGame :: GameState -> String -- pretty prints a game
-prettyPrintGame gmSt = numString ++ "--" ++ barString ++ (init gameString)
-    where gm = snd gmSt
-          width = length gm
+prettyPrintGame :: Game -> String -- pretty prints a game
+prettyPrintGame gm = numString ++ "--" ++ barString ++ (init gameString)
+    where width = length gm
           height = length (head gm)
           nGm = rotateGame gm
           nums = [" " ++ [intToChar x] | x <- [1..width]]
@@ -93,7 +92,7 @@ prettyPrintGame gmSt = numString ++ "--" ++ barString ++ (init gameString)
 printGame :: Game -> String -- prints a game
 printGame gm = gameToString (rotateGame gm)
 
-displayGame :: GameState -> IO () -- displays a game
+displayGame :: Game -> IO () -- displays a game
 displayGame gm = putStrLn (prettyPrintGame gm) --putStrLn (printGm gm) -- Non pretty print
 
 --player logic
@@ -149,8 +148,14 @@ checkDiagonalWin game player = any (isSubString playerString) $ map (map playerT
   where playerString = replicate 4 (playerToChar player)
 
 
-checkWin :: Game -> Player -> Bool -- checks if a player has won
-checkWin gm ply = checkStraightWin gm ply || checkStraightWin (rotateGame gm) ply || checkDiagonalWin gm ply
+checkWin :: GameState -> Bool -- checks if a player has won
+checkWin gmSt = checkHorizontalWin gm ply || checkHorizontalWin (rotateGame gm) ply || checkDiagonalWin gm ply
+    where gm = snd gmSt
+          ply = fst gmSt
+
+checkBothWin :: GameState -> Bool -- checks if both players have won
+checkBothWin gmSt = checkWin gmSt && checkWin (switchPlayer (fst gmSt), snd gmSt)
+
 
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
@@ -172,7 +177,7 @@ playGame :: GameState -> IO () -- plays a game
 playGame gmSt  = do
     let ply = fst gmSt
     let gm = snd gmSt
-    displayGame gmSt
+    displayGame gm
     putStrLn "Enter a column number to make a move"
     col <- getLine
     if (col == "q") then putStrLn "Quitting" 
@@ -180,22 +185,23 @@ playGame gmSt  = do
         putStrLn "------Illegal move------"
         playGame gmSt
     else do
-        let newGm = makeMove (read col) gmSt
-        if checkWin gm ply
+        let newGmSt = makeMove (read col) gmSt
+            newGm = snd newGmSt
+        if checkWin newGmSt
         then do 
             putStrLn (prettyPrintGame newGm ++ "\n===" ++ show ply ++ " wins!===\n")
             putStrLn "Enter q to quit or anything else to play again"
             quit <- getLine
             if quit == "q" then putStrLn "Quitting"
             else playGame (makeGameState (length (head gm)) (length gm))
-        else if getAvailableMoves newGm == [] 
+        else if getAvailableMoves newGmSt == [] 
         then do 
             putStrLn (prettyPrintGame newGm ++ "\n===Tie game!===\n") 
             putStrLn "Enter q to quit or anything else to play again"
             quit <- getLine
             if quit == "q" then putStrLn "Quitting"
             else playGame (makeGameState (length (head gm)) (length gm)) 
-        else playGame newGm
+        else playGame newGmSt
         --playGame newGm (switchPlayer ply)
 
 -- main :: IO () -- main that asks for number of rows and columns
