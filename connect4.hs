@@ -160,14 +160,34 @@ checkHorizontalWin game player = any (isSubString playerString) $ map colToStrin
   where
     playerString = replicate 4 (playerToChar player)
 
--- Function to check for diagonal wins by reusing the horizontal win check
+-- Check this type of diagonal (/)
+diagonals1 :: Game -> [[Player]]
+diagonals1 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x <= y]
+  where height = length game
+        width = length (head game)
+        diag g (i, j)
+          | i < width && j >= 0 = (g !! j !! i) : diag g (i+1, j-1)
+          | otherwise = []
+
+-- Check this type of diagonal (\)
+diagonals2 :: Game -> [[Player]]
+diagonals2 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x + y < height]
+  where height = length game
+        width = length (head game)
+        diag g (i, j)
+          | i < width && j < height = (g !! j !! i) : diag g (i+1, j+1)
+          | otherwise = []
+
+-- Check if any diagonal contains four of the same player in a row
 checkDiagonalWin :: Game -> Player -> Bool
-checkDiagonalWin game player =
-  let diagonals = rotateGame game ++ rotateGame (flipHorizontal game)
-  in any (`checkHorizontalWin` player) diagonals
+checkDiagonalWin game player = any (isSubString playerString) $ map (map playerToChar) (diagonals1 game ++ diagonals2 game)
+  where playerString = replicate 4 (playerToChar player)
+
 
 checkWin :: Game -> Player -> Bool -- checks if a player has won
-checkWin gm ply = checkStraightWin (rotateGame gm) ply || checkStraightWin gm ply -- || checkDiagonalWin gm ply
+checkWin gm ply = checkStraightWin gm ply || checkStraightWin (rotateGame gm) ply || checkDiagonalWin gm ply
+
+
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame game
