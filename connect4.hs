@@ -116,22 +116,21 @@ colToString col = (map playerToChar col)
 
 
 checkStraightWin :: Game -> Player -> Bool -- checks if a player has won in a straight line
-checkStraightWin gm ply = any (fourInRow ply) columns
-  where
-    columns = transposeGame gm
+checkStraightWin gm ply = any (fourInRow ply) gm
 
 fourInRow :: Eq a => a -> [a] -> Bool -- checks if there are 4 of the same element in a row
 fourInRow elem lst = aux lst 0
   where
-    aux [] count = count >= 3
+    aux [] count = count >= 4
+    aux _ 4 = True
     aux (x:xs) count
       | x == elem = aux xs (count + 1)
       | otherwise = aux xs 0
 
-transposeGame :: Game -> Game -- allows checkStraightWin to read the columns
-transposeGame [] = []
-transposeGame ([]:_) = []
-transposeGame gm = map head gm : transposeGame (map tail gm)
+-- transposeGame :: Game -> Game -- allows checkStraightWin to read the columns
+-- transposeGame [] = []
+-- transposeGame ([]:_) = []
+-- transposeGame gm = map head gm : transposeGame (map tail gm)
 
 
 -- checkHorizontalWin :: Game -> Player -> Bool -- checks if a horizontal win has occured
@@ -165,8 +164,8 @@ checkWin gm ply = checkStraightWin gm ply || checkStraightWin (rotateGame gm) pl
 
 winnerOfGame :: Game -> Winner -- returns the winner of a game
 winnerOfGame game
-  | checkHorizontalWin game Red || checkDiagonalWin game Red = Red
-  | checkHorizontalWin game Black || checkDiagonalWin game Black = Black
+  | checkStraightWin game Red || checkDiagonalWin game Red = Red
+  | checkStraightWin game Black || checkDiagonalWin game Black = Black
   | otherwise = Empty
 
 -- Game play logic
@@ -192,7 +191,7 @@ gameTie gmSt = do
             if quit == "q" then putStrLn "Quitting"
             else playGame (makeGameState (length (head gm)) (length gm)) 
     where gm = snd gmSt
-    
+
 -- getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
 -- getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm) ply]
 
