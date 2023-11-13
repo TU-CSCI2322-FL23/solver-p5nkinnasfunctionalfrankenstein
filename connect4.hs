@@ -193,13 +193,24 @@ gameTie gmSt = do
 -- getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
 -- getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm) ply]
 
-writeGame :: Game -> FilePath -> IO () -- writes a game to a file
+whoWillWin :: GameState -> Winner -- checks who will win
+whoWillWin gmSt = undefined
+
+bestMove :: GameState -> Move -- gets the best move in a game
+bestMove gmSt = undefined
+
+readGame :: String -> GameState -- reads a game from a string
+readGame str = read str :: GameState
+
+
+
+writeGame :: GameState -> FilePath -> IO () -- writes a game to a file
 writeGame gm path = writeFile path (show gm)
 
-loadGame :: FilePath -> IO Game --untested
+loadGame :: FilePath -> IO GameState --untested
 loadGame path = do
     contents <- readFile path
-    let game = read contents :: Game
+    let game = read contents :: GameState
     return game
 
 putBestMove :: GameState -> IO () -- puts the best move in a game -- not done
