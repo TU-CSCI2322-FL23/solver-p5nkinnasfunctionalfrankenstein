@@ -1,5 +1,5 @@
 
-data Player = Red | Black | Empty deriving (Show, Eq)
+data Player = Red | Black | Empty deriving (Show, Eq, Read)
 type Column = [Player]
 type Game = [Column]
 type GameState = (Player, Game)
@@ -192,6 +192,24 @@ gameTie gmSt = do
 
 -- getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
 -- getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm) ply]
+
+writeGame :: Game -> FilePath -> IO () -- writes a game to a file
+writeGame gm path = writeFile path (show gm)
+
+loadGame :: FilePath -> IO Game --untested
+loadGame path = do
+    contents <- readFile path
+    let game = read contents :: Game
+    return game
+
+putBestMove :: GameState -> IO () -- puts the best move in a game -- not done
+putBestMove gmSt = do
+    let ply = fst gmSt
+        gm = snd gmSt
+        moves = getAvailableMoves gmSt
+        bestMove = head moves
+    putStrLn ("The best move is " ++ show bestMove)
+    playGame (makeMove bestMove gmSt)
 
 playGame :: GameState -> IO () -- plays a game
 playGame gmSt  = do
