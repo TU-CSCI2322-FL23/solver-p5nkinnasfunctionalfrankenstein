@@ -2,8 +2,9 @@
 data Player = Red | Black deriving (Show, Eq, Read)
 type Column = [Maybe Player]
 type Game = [Column]
+data Winner = Win Player | Tie Player
 type GameState = (Maybe Player, Game)
-type Winner = Maybe Player
+--type Winner = Maybe Player
 type Move = Int
 
 
@@ -158,11 +159,14 @@ checkDiagonalWin gm ply = any (fourInRow ply) (diagonals1 gm ++ diagonals2 gm)
 checkWin :: Game -> Maybe Player -> Bool -- checks if a player has won
 checkWin gm ply = checkStraightWin gm ply || checkStraightWin (rotateGame gm) ply || checkDiagonalWin gm ply
 
-winnerOfGame :: Game -> Winner -- returns the winner of a game
+winnerOfGame :: Game -> Maybe Winner -- returns the winner of a game
 winnerOfGame game
-  | checkWin game (Just Red) = Just Red
-  | checkWin game (Just Black) = Just Black
-  | otherwise = Nothing
+  | checkWin game (Just Red) = Just (Win Red) -- Red Win
+  | checkWin game (Just Black) = Just (Win Black) -- Black Win
+  | otherwise = Nothing -- Game is ongoing
+--   | checkWin game (Just Red) = Just Red
+--   | checkWin game (Just Black) = Just Black
+--   | otherwise = Nothing
 
 -- Game play logic
 
