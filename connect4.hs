@@ -24,7 +24,7 @@ type Move = Int
 -- (If time) Be able to pretty-print a game into a string. (Done)
 
 makeGameState :: Int -> Int -> GameState -- makes a blank game of size n x m
-makeGameState n m = ((Just Red), [[Nothing | x <- [1..n]] | y <- [1..m]])
+makeGameState n m = (Just Red, [[Nothing | x <- [1..n]] | y <- [1..m]])
 
 playerToChar :: Maybe Player -> Char -- converts player to char
 playerToChar (Just Red) = 'R'
@@ -39,21 +39,19 @@ dexColNum gm n = dexColNum (tail gm) (n-1)
 
 colHasNothing :: Column -> Bool -- checks if a column has an Nothing spot
 colHasNothing [] = False
-colHasNothing (x:xs) = if x == Nothing then True else colHasNothing xs
+colHasNothing (x:xs) = (x == Nothing) || colHasNothing xs
 
 insertPlay :: Column -> Maybe Player -> Column -- changes the last Nothing spot in a column to a player
 insertPlay (Nothing:rest) color = aux rest
-   where aux (Nothing:rest) = Nothing:(aux rest)
-         aux column = (color):column
+   where aux (Nothing:rest) = Nothing:aux rest
+         aux column = color:column
 
 legalMove :: Game -> Move -> Bool -- checks if a move is legal
-legalMove gm n = 
-    if n > length gm || n < 1 then False 
-    else if colHasNothing(dexColNum gm n) then True 
-    else False
+legalMove gm n =
+    not (n > length gm || n < 1) && colHasNothing (dexColNum gm n)
 
 makeMove :: Move -> GameState -> GameState -- makes a move in a game
-makeMove mv gmSt = ((switchPlayer ply), (frntGm ++ [insertPlay (head bkGm) ply] ++ (tail bkGm)))
+makeMove mv gmSt = (switchPlayer ply, frntGm ++ [insertPlay (head bkGm) ply] ++ tail bkGm)
     where gm = snd gmSt
           ply = fst gmSt
           num = mv-1
@@ -63,11 +61,11 @@ makeMove mv gmSt = ((switchPlayer ply), (frntGm ++ [insertPlay (head bkGm) ply] 
 -- orentation functions
 
 rotateGame :: Game -> Game -- rotates a game 90 degrees the other way
-rotateGame gm = if length (last gm) == 0 then [] else (map head gm) : rotateGame (map tail gm)
+rotateGame gm = if length (last gm) == 0 then [] else map head gm : rotateGame (map tail gm)
 
 gameToString :: Game -> String -- converts a game to a string
 gameToString gm = if length gm == 0 then [] else function
-    where function = (map playerToChar (head gm)) ++ "\n" ++ gameToString (tail gm)
+    where function = map playerToChar (head gm) ++ "\n" ++ gameToString (tail gm)
 
 intToChar :: Int -> Char -- converts an int to a char
 intToChar n = head (show n)
@@ -77,13 +75,13 @@ bars :: Char -> String -- adds bars to a string
 bars n = "|" ++ [n]
 
 prettyPrintGame :: Game -> String -- pretty prints a game
-prettyPrintGame gm = numString ++ "--" ++ barString ++ (init gameString)
+prettyPrintGame gm = numString ++ "--" ++ barString ++ init gameString
     where width = length gm
           height = length (head gm)
           nGm = rotateGame gm
           nums = [" " ++ [intToChar x] | x <- [1..width]]
           bar = ["--" | x <- [1..width]]
-          game = (map playerToChar (head nGm)) ++ "\n" ++ gameToString (tail nGm)
+          game = map playerToChar (head nGm) ++ "\n" ++ gameToString (tail nGm)
           gameBars = [bars x | x <- game]
           numString = concat nums ++ "\n"
           barString = concat bar ++ "\n"
@@ -98,8 +96,8 @@ displayGame gm = putStrLn (prettyPrintGame gm) --putStrLn (printGm gm) -- Non pr
 --player logic
 
 switchPlayer :: Maybe Player -> Maybe Player -- switches player
-switchPlayer (Just Red) = (Just Black)
-switchPlayer (Just Black) = (Just Red)
+switchPlayer (Just Red) = Just Black
+switchPlayer (Just Black) = Just Red
 
 changePlayer :: GameState -> GameState -- changes the player in a game state
 changePlayer gmSt = (switchPlayer (fst gmSt), snd gmSt)
@@ -110,7 +108,7 @@ isSubString _ [] = False
 isSubString (x:xs) (y:ys) = if x == y then isSubString xs ys else isSubString (x:xs) ys -- dose not check for spaces
 
 colToString :: Column -> String -- converts a column to a string
-colToString col = (map playerToChar col)
+colToString = map playerToChar
 
 -- Winner logic
 
@@ -174,7 +172,7 @@ getAvailableMoves gmSt = [x | x <- [1..length gm], legalMove gm x]
 
 -- printing logic
 playerWon :: Game -> Maybe Player -> IO () -- checks if a player has won
-playerWon gm ply = do     
+playerWon gm ply = do
             putStrLn (prettyPrintGame gm ++ "\n===" ++ show ply ++ " wins!===\n")
             putStrLn "Enter q to quit or anything else to play again"
             quit <- getLine
@@ -183,11 +181,11 @@ playerWon gm ply = do
 
 gameTie :: GameState -> IO () -- checks if a game is a tie
 gameTie gmSt = do
-            putStrLn (prettyPrintGame gm ++ "\n===Tie game!===\n") 
+            putStrLn (prettyPrintGame gm ++ "\n===Tie game!===\n")
             putStrLn "Enter q to quit or anything else to play again"
             quit <- getLine
             if quit == "q" then putStrLn "Quitting"
-            else playGame (makeGameState (length (head gm)) (length gm)) 
+            else playGame (makeGameState (length (head gm)) (length gm))
     where gm = snd gmSt
 
 -- getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
@@ -230,8 +228,8 @@ playGame gmSt  = do
 
     putStrLn "Enter a column number to make a move"
     col <- getLine
-    if (col == "q") then putStrLn "Quitting" 
-    
+    if (col == "q") then putStrLn "Quitting"
+
     else if not (legalMove gm (read col)) then do
         putStrLn "------Illegal move------"
         playGame gmSt
@@ -242,8 +240,8 @@ playGame gmSt  = do
 
         if checkWin newGm ply
         then playerWon newGm ply
-        else if getAvailableMoves newGmSt == [] 
-        then gameTie newGmSt 
+        else if getAvailableMoves newGmSt == []
+        then gameTie newGmSt
         else playGame newGmSt
 
 -- main :: IO () -- main that asks for number of rows and columns
