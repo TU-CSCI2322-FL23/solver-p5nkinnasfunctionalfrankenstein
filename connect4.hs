@@ -1,3 +1,4 @@
+module ConnectFour where
 
 data Player = Red | Black deriving (Show, Eq, Read)
 type Column = [Maybe Player]
@@ -125,12 +126,6 @@ fourInRow elem lst = aux lst 0
       | x == elem = aux xs (count + 1)
       | otherwise = aux xs 0
 
--- transposeGame :: Game -> Game -- allows checkStraightWin to read the columns
--- transposeGame [] = []
--- transposeGame ([]:_) = []
--- transposeGame gm = map head gm : transposeGame (map tail gm)
-
-
 -- checkHorizontalWin :: Game -> Player -> Bool -- checks if a horizontal win has occured
 -- checkHorizontalWin game player = any (isSubString playerString) $ map colToString game
 --   where
@@ -192,15 +187,16 @@ gameTie gmSt = do
 -- getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm) ply]
 
 -- whoWillWin :: GameState -> Winner -- checks who will win
--- whoWillWin gmSt = undefined
+-- whoWillWin gmSt = 
+--     where ply = fst gmSt
+--           gm = snd gmSt
+--           moves = getAvailableMoves gmSt
 
 -- bestMove :: GameState -> Move -- gets the best move in a game
 -- bestMove gmSt = undefined
 
 readGame :: String -> GameState -- reads a game from a string
 readGame str = read str :: GameState
-
-
 
 writeGame :: GameState -> FilePath -> IO () -- writes a game to a file
 writeGame gm path = writeFile path (show gm)
