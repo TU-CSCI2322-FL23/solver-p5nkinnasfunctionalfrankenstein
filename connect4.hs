@@ -161,8 +161,8 @@ checkWin gm ply = checkStraightWin gm ply || checkStraightWin (rotateGame gm) pl
 
 winnerOfGame :: Game -> Maybe Winner -- returns the winner of a game
 winnerOfGame game
-  | checkWin game Red = Just (Win Red) -- Red Win
-  | checkWin game Black = Just (Win Black) -- Black Win
+  | checkWin game (Just Red) = Just (Win Red) -- Red Win
+  | checkWin game (Just Black) = Just (Win Black) -- Black Win
   | otherwise = Nothing -- Game is ongoing
 --   | checkWin game (Just Red) = Just Red
 --   | checkWin game (Just Black) = Just Black
