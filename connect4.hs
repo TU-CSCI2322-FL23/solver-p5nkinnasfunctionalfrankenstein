@@ -129,7 +129,7 @@ checkHorizontalWin game player = any (isSubString playerString) $ map colToStrin
 diagonals1 :: Game -> [[Player]]
 diagonals1 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x <= y]
   where height = length game
-        width = length (head game)
+        width = length (head game) 
         diag g (i, j)
           | i < width && j >= 0 = (g !! j !! i) : diag g (i+1, j-1)
           | otherwise = []
@@ -139,9 +139,9 @@ diagonals2 :: Game -> [[Player]]
 diagonals2 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x + y < height]
   where height = length game
         width = length (head game)
-        diag g (i, j)
+        diag g (i, j) 
           | i < width && j < height = (g !! j !! i) : diag g (i+1, j+1)
-          | otherwise = []
+          | otherwise = [] 
 
 -- Check if any diagonal contains four of the same player in a row
 checkDiagonalWin :: Game -> Player -> Bool
