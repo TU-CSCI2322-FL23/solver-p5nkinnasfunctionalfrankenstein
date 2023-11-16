@@ -198,8 +198,43 @@ gameTie gmSt = do
 -- whoWillWin :: GameState -> Winner -- checks who will win
 -- whoWillWin gmSt = undefined
 
--- bestMove :: GameState -> Move -- gets the best move in a game
--- bestMove gmSt = undefined
+
+
+-- HELPER FUNCTION FOR bestMove
+evaluateBoard :: GameState -> Int
+evaluateBoard gameState@(Just player, game)
+  | checkWin game (Just Red) = if player == Red then 1000 else -1000
+  | checkWin game (Just Black) = if player == Black then 1000 else -1000
+  | otherwise = 0 
+
+
+-- HELPER FUNCTION FOR bestMove
+minimax :: GameState -> Int -> Bool -> Int
+minimax gameState@(player, game) depth isMaximizingPlayer
+  | depth == 0 || isGameDecided (winnerOfGame game) = evaluateBoard gameState
+  | isMaximizingPlayer = 
+      maximum [ minimax (makeMove move gameState) (depth - 1) False | move <- getAvailableMoves gameState, legalMove game move ]
+  | otherwise = 
+      minimum [ minimax (makeMove move gameState) (depth - 1) True | move <- getAvailableMoves gameState, legalMove game move ]
+  where
+    isGameDecided :: Maybe Winner -> Bool
+    isGameDecided Nothing = False
+    isGameDecided (Just _) = True
+
+
+bestMove :: GameState -> Move
+bestMove gameState@(Just player, game) =
+  let moves = getAvailableMoves gameState
+      moveScores = [(minimax (makeMove move gameState) depth (player /= Red), move) | move <- moves]
+      bestScore
+        | player == Red = maximum moveScores
+        | otherwise = minimum moveScores
+      depth = 5 
+  in snd bestScore
+  
+
+
+  
 
 readGame :: String -> GameState -- reads a game from a string
 readGame str = read str :: GameState
