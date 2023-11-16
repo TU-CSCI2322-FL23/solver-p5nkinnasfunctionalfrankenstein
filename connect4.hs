@@ -1,3 +1,4 @@
+import Distribution.Simple.Test (test)
 
 data Player = Red | Black deriving (Show, Eq, Read)
 type Column = [Maybe Player]
@@ -140,7 +141,7 @@ fourInRow elem lst = aux lst 0
 diagonals1 :: Game -> Game -- Check this type of diagonal (/)
 diagonals1 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x <= y]
   where height = length game
-        width = length (head game) 
+        width = length (head game)
         diag g (i, j)
           | i < width && j >= 0 = (g !! j !! i) : diag g (i+1, j-1)
           | otherwise = []
@@ -149,9 +150,9 @@ diagonals2 :: Game -> Game -- Check this type of diagonal (\)
 diagonals2 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x + y < height]
   where height = length game
         width = length (head game)
-        diag g (i, j) 
+        diag g (i, j)
           | i < width && j < height = (g !! j !! i) : diag g (i+1, j+1)
-          | otherwise = [] 
+          | otherwise = []
 
 checkDiagonalWin :: Game -> Maybe Player -> Bool -- checks if a player has won in a diagonal line
 checkDiagonalWin gm ply = any (fourInRow ply) (diagonals1 gm ++ diagonals2 gm)
@@ -205,21 +206,23 @@ evaluateBoard :: GameState -> Int
 evaluateBoard gameState@(Just player, game)
   | checkWin game (Just Red) = if player == Red then 1000 else -1000
   | checkWin game (Just Black) = if player == Black then 1000 else -1000
-  | otherwise = 0 
+  | otherwise = 0
 
 
 -- HELPER FUNCTION FOR bestMove
 minimax :: GameState -> Int -> Bool -> Int
 minimax gameState@(player, game) depth isMaximizingPlayer
   | depth == 0 || isGameDecided (winnerOfGame game) = evaluateBoard gameState
-  | isMaximizingPlayer = 
+  | isMaximizingPlayer =
       maximum [ minimax (makeMove move gameState) (depth - 1) False | move <- getAvailableMoves gameState, legalMove game move ]
-  | otherwise = 
+  | otherwise =
       minimum [ minimax (makeMove move gameState) (depth - 1) True | move <- getAvailableMoves gameState, legalMove game move ]
   where
     isGameDecided :: Maybe Winner -> Bool
     isGameDecided Nothing = False
     isGameDecided (Just _) = True
+
+
 
 
 bestMove :: GameState -> Move
@@ -229,12 +232,32 @@ bestMove gameState@(Just player, game) =
       bestScore
         | player == Red = maximum moveScores
         | otherwise = minimum moveScores
-      depth = 5 
+      depth = 5
   in snd bestScore
-  
+
+testBM :: Int -> GameState
+testBM x = if x == 1 then gm else answer
+    where gm = (Just Red, rotateGame [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+                [Just Black, Just Black, Just Black, Nothing, Nothing, Nothing, Nothing],
+                [Just Red, Just Red, Just Red, Nothing, Nothing, Nothing, Nothing]])
+          answer = (Just Black, rotateGame [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+                [Just Black, Just Black, Just Black, Nothing, Nothing, Nothing, Nothing],
+                [Just Red, Just Red, Just Red, Just Red, Nothing, Nothing, Nothing]])
 
 
-  
+bestMoveTest :: GameState -> GameState -> IO()
+bestMoveTest gmSt answer = if answer == moveMade then putStrLn "Test Passed" else putStrLn "Test Failed"
+    where gmAnswer = snd answer
+          moveMade = makeMove (bestMove gmSt) gmSt
+
+-- bestMoveTest (testBM 1) (testBM 2) -- test for bestMove
+
 
 readGame :: String -> GameState -- reads a game from a string
 readGame str = read str :: GameState
