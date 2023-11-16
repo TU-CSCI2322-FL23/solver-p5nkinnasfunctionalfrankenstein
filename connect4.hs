@@ -1,4 +1,4 @@
-import Distribution.Simple.Test (test)
+
 
 data Player = Red | Black deriving (Show, Eq, Read)
 type Column = [Maybe Player]
@@ -32,6 +32,11 @@ playerToChar :: Maybe Player -> Char -- converts player to char
 playerToChar (Just Red) = 'R'
 playerToChar (Just Black) = 'B'
 playerToChar Nothing = '.'
+
+playerToString :: Maybe Player -> String -- converts player to string
+playerToString (Just Red) = "Just Red, "
+playerToString (Just Black) = "Just Black, "
+playerToString Nothing = "Nothing, "
 
 -- move functions
 
@@ -235,28 +240,103 @@ bestMove gameState@(Just player, game) =
       depth = 5
   in snd bestScore
 
-testBM :: Int -> GameState
-testBM x = if x == 1 then gm else answer
-    where gm = (Just Red, rotateGame [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-                [Just Black, Just Black, Just Black, Nothing, Nothing, Nothing, Nothing],
-                [Just Red, Just Red, Just Red, Nothing, Nothing, Nothing, Nothing]])
-          answer = (Just Black, rotateGame [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-                [Just Black, Just Black, Just Black, Nothing, Nothing, Nothing, Nothing],
-                [Just Red, Just Red, Just Red, Just Red, Nothing, Nothing, Nothing]])
+gameToString2 :: Game -> String -- converts a game to a string
+gameToString2 gm = if length gm == 0 then [] else concat function
+    where function = map playerToString (head gm) ++ "\n" : [gameToString2 (tail gm)]
 
+testBM :: Int -> GameState
+testBM x
+    | x == 1 = gm
+    | x == 2 = answer
+    | x == 3 = gm2
+    | x == 4 = answer2
+    | x == 5 = gm3
+    | x == 6 = answer3
+    | x == 7 = gm4
+    | x == 8 = answer4
+  where
+    gm = (Just Red,
+           rotateGame
+             [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Just Black, Just Black, Just Black, Nothing, Nothing, Nothing,Nothing],
+              [Just Red, Just Red, Just Red, Nothing, Nothing, Nothing, Nothing]])
+    answer = (Just Black,
+           rotateGame
+             [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Just Black, Just Black, Just Black, Nothing, Nothing, Nothing,Nothing],
+              [Just Red, Just Red, Just Red, Just Red, Nothing, Nothing,Nothing]])
+    gm2 = (Just Red,
+           rotateGame
+             [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Just Black, Just Black, Just Black, Nothing, Nothing, Nothing,Nothing],
+              [Just Red, Just Red, Just Red, Just Black, Just Red, Just Red,Just Red]])
+    answer2 = (Just Black,
+           rotateGame
+             [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Just Black, Just Black, Just Black, Just Black, Nothing, Nothing, Nothing],
+              [Just Red, Just Red, Just Red, Just Black, Just Red, Just Red, Just Red]])
+    gm3 = (Just Red,
+           rotateGame
+             [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Just Red, Nothing, Just Red, Just Red, Nothing, Nothing, Nothing],
+              [Just Black, Just Red, Just Black, Just Red, Nothing, Nothing,Nothing],
+              [Just Red, Just Black, Just Black, Just Black, Nothing, Nothing, Nothing]])
+    answer3 = (Just Red,
+           rotateGame
+             [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+              [Nothing, Nothing, Nothing, Just Red, Nothing, Nothing, Nothing],
+              [Just Red, Nothing, Just Red, Just Red, Nothing, Nothing, Nothing],
+              [Just Black, Just Red, Just Black, Just Red, Nothing, Nothing,Nothing],
+              [Just Red, Just Black, Just Black, Just Black, Nothing, Nothing, Nothing]])
+    gm4 = (Just Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+            [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+            [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+            [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
+    answer4 = (Just Black, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+            [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+            [Nothing, Nothing, Just Red, Just Black, Just Red, Just Black],
+            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+            [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
+
+-- bestMoveTest (testBM 1) (testBM 2) -- test for bestMove
 
 bestMoveTest :: GameState -> GameState -> IO()
-bestMoveTest gmSt answer = if answer == moveMade then putStrLn "Test Passed" else putStrLn "Test Failed"
+bestMoveTest gmSt answer =
+    if answer == moveMade then putStrLn "Test Passed"
+    else do putStrLn "Test Failed"
+            putStrLn ("Expected: \n" ++ prettyPrintGame (snd answer))
+            putStrLn ("But got: \n" ++ prettyPrintGame (snd moveMade))
     where gmAnswer = snd answer
           moveMade = makeMove (bestMove gmSt) gmSt
 
+
 -- bestMoveTest (testBM 1) (testBM 2) -- test for bestMove
+runTests :: IO ()
+runTests = do
+    bestMoveTest (testBM 1) (testBM 2)
+    bestMoveTest (testBM 3) (testBM 4)
+    bestMoveTest (testBM 5) (testBM 6)
+    bestMoveTest (testBM 7) (testBM 8)
 
 
 readGame :: String -> GameState -- reads a game from a string
@@ -290,7 +370,9 @@ playGame gmSt  = do
 
     putStrLn "Enter a column number to make a move"
     col <- getLine
-    if (col == "q") then putStrLn "Quitting"
+    if col == "q" then putStrLn "Quitting"
+
+    else if col == "g" then putStrLn (gameToString2 gm)
 
     else if not (legalMove gm (read col)) then do
         putStrLn "------Illegal move------"
