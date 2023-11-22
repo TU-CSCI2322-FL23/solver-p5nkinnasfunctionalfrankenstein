@@ -1,3 +1,4 @@
+import Data.Maybe (isNothing)
 
 
 data Player = Red | Black deriving (Show, Eq, Read)
@@ -206,52 +207,54 @@ gameTie gmSt = do
 
 
 
-
-
---bestMove HELPER
+-- HELPER FUNCTION FOR bestMove
 evaluateBoard :: GameState -> Int
-evaluateBoard (Just player, game)
-  | checkWin game (Just Red) = 1000
-  | checkWin game (Just Black) = -1000
-  | otherwise = calculateBoardScore game
-  where
-    calculateBoardScore :: Game -> Int
-    calculateBoardScore g =
-      let
-        redPotential = countPlayerPieces g (Just Red)       -- used gpt for help
-        blackPotential = countPlayerPieces g (Just Black)
-      in redPotential - blackPotential
+evaluateBoard gameState@(Just player, game)
+  | checkWin game (Just Red) = if player == Red then 1000 else -1000
+  | checkWin game (Just Black) = if player == Black then 1000 else -1000
+  | otherwise = 0
 
-    countPlayerPieces :: Game -> Maybe Player -> Int
-    countPlayerPieces g p = sum [length $ filter (== p) column | column <- g]
 
---bestMove HELPER
-bestMoveStrategy :: GameState -> Int -> Bool -> Int
-bestMoveStrategy gameState@(player, game) depth isMaximizingPlayer
+-- HELPER FUNCTION FOR bestMove
+minimax :: GameState -> Int -> Bool -> Int
+minimax gameState@(player, game) depth isMaximizingPlayer
   | depth == 0 || isGameDecided (winnerOfGame game) = evaluateBoard gameState
   | isMaximizingPlayer =
-      maximum [bestMoveStrategy (makeMove move gameState) (depth - 1) False | move <- getAvailableMoves gameState]
+      maximum [ minimax (makeMove move gameState) (depth - 1) False | move <- getAvailableMoves gameState, legalMove game move ]
   | otherwise =
-      minimum [bestMoveStrategy (makeMove move gameState) (depth - 1) True | move <- getAvailableMoves gameState]
+      minimum [ minimax (makeMove move gameState) (depth - 1) True | move <- getAvailableMoves gameState, legalMove game move ]
+  where
+    isGameDecided :: Maybe Winner -> Bool
+    isGameDecided Nothing = False
+    isGameDecided (Just _) = True
 
--- Function to determine the best move
+
+
+
 bestMove :: GameState -> Move
 bestMove gameState@(Just player, game) =
   let moves = getAvailableMoves gameState
-      depth = 4
-      moveScores = [(bestMoveStrategy (makeMove move gameState) depth (player == Red), move) | move <- moves]
-      bestScore = if player == Red then maximum moveScores else minimum moveScores
+      moveScores = [(minimax (makeMove move gameState) depth (player /= Red), move) | move <- moves]
+      bestScore
+        | player == Red = maximum moveScores
+        | otherwise = minimum moveScores
+      depth = 5
   in snd bestScore
 
--- bestMove HELPER
-isGameDecided :: Maybe Winner -> Bool
-isGameDecided Nothing = False
-isGameDecided (Just _) = True
 
+playThrough :: GameState -> GameState
+playThrough gmSt =
+    if isNothing (winnerOfGame gm)
+    then playThrough newGmSt
+    else newGmSt
+    where ply = fst gmSt
+          gm = snd gmSt
+          moves = getAvailableMoves gmSt
+          bestMove = head moves
+          newGmSt = makeMove bestMove gmSt
 
-
-
-
+whoWillWin :: GameState -> Maybe Winner -- checks who will win -- doesn't account for ties
+whoWillWin gmSt = winnerOfGame (snd (playThrough gmSt))
 
 gameToString2 :: Game -> String -- converts a game to a string
 gameToString2 gm = if length gm == 0 then [] else concat function
@@ -326,9 +329,9 @@ testBM x
     answer4 = (Just Black, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
             [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
             [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
-            [Nothing, Nothing, Just Red, Just Black, Just Red, Just Black],
-            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
             [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+            [Nothing, Nothing, Just Red, Just Black, Just Red, Just Black],
             [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
 
 -- bestMoveTest (testBM 1) (testBM 2) -- test for bestMove
