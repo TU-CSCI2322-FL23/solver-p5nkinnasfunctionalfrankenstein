@@ -228,9 +228,6 @@ minimax gameState@(player, game) depth isMaximizingPlayer
     isGameDecided Nothing = False
     isGameDecided (Just _) = True
 
-
-
-
 bestMove :: GameState -> Move
 bestMove gameState@(Just player, game) =
   let moves = getAvailableMoves gameState
