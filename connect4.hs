@@ -5,7 +5,7 @@ import Data.Maybe
 data Player = Red | Black deriving (Show, Eq, Read)
 type Column = [Maybe Player]
 type Game = [Column]
-data Winner = Win Player | Tie Player deriving (Show, Eq, Read)
+data Winner = Win Player | Tie deriving (Show, Eq, Read)
 type GameState = (Maybe Player, Game)
 --type Winner = Maybe Player
 type Move = Int
@@ -155,13 +155,15 @@ winnerOfGame :: Game -> Maybe Winner -- returns the winner of a game
 winnerOfGame game
   | checkWin game (Just Red) = Just (Win Red) -- Red Win
   | checkWin game (Just Black) = Just (Win Black) -- Black Win
+  | null moves = Just Tie -- Tie
   | otherwise = Nothing -- Game is ongoing
+  where moves = getAvailableMoves (Nothing, game)
 
 -- Game play logic
 
 getAvailableMoves :: GameState -> [Move] -- gets the available moves in a game
-getAvailableMoves gmSt = [x | x <- [1..length gm], legalMove gm x]
-    where gm = snd gmSt
+getAvailableMoves (ply, gm) = [x | x <- [1..length gm], legalMove gm x]
+
 
 -- printing logic
 playerWon :: Game -> Maybe Player -> IO () -- checks if a player has won
@@ -234,7 +236,7 @@ bestMove gameState@(Just player, game) =
 --         --moves = getAvailableMoves gameState 
 
 whoWillWin :: GameState -> Maybe Winner -- checks who will win -- doesn't account for ties
-whoWillWin gmSt = 
+whoWillWin gmSt =
   if isNothing (winnerOfGame gm)
   then whoWillWin newGmSt
   else winnerOfGame gm
@@ -429,5 +431,4 @@ main = undefined -- do -- needs to read a game file and print the winner
   -- putStrLn "Enter the name of the file you want to load"
   -- file <- getLine
   --putStrLn(winnerOfGame (snd (loadGame file))) -- this is not working
-  
-  
+
