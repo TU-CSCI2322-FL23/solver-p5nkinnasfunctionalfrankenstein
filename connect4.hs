@@ -78,7 +78,8 @@ prettyPrintGame gm = numString ++ "--" ++ barString ++ init gameString
           numString = concat nums ++ "\n"
           barString = concat bar ++ "\n"
           gameString = concat gameBars
-
+prettyPrintGameState :: GameState -> String -- pretty prints a game state
+prettyPrintGameState (ply, gm) = prettyPrintGame (gm)
 printGame :: Game -> String -- prints a game
 printGame gm = gameToString (rotateGame gm)
 
@@ -153,9 +154,6 @@ winnerOfGame game
   | checkWin game (Just Red) = Just (Win Red) -- Red Win
   | checkWin game (Just Black) = Just (Win Black) -- Black Win
   | otherwise = Nothing -- Game is ongoing
---   | checkWin game (Just Red) = Just Red
---   | checkWin game (Just Black) = Just Black
---   | otherwise = Nothing
 
 -- Game play logic
 
@@ -212,13 +210,11 @@ bestMove gameState@(Just player, game) =
       bestScore
         | player == Red = maximum moveScores
         | otherwise = minimum moveScores
-      depth = 5--used to be 5
+      depth = 5
   in snd bestScore
 
 -- checkWinWithK :: Int -> GameState -> Bool
 -- checkWinWithK k (ply, gm) = any (winWithK ply ((diagonals1 gm) ++ (diagonals2 gm))) k || any (winWithK ply gm) k
-
-
 
 -- checkForK :: Int -> GameState -> Move -> Move
 -- checkForK _ _ 0 = -1
@@ -228,8 +224,6 @@ bestMove gameState@(Just player, game) =
 -- itK 0 _ = -1
 -- itK k (ply, gm) = if rowRes == -1 then itK (k-1) (ply, gm) else rowRes
 --   where rowRes = checkForK k (ply, gm) 1
-
-
 
 -- bestMove2 :: GameState -> Move 
 -- bestMove2 gmSt = if res == -1 then 7 else res 
@@ -384,7 +378,7 @@ readGame str = read str :: GameState
 writeGame :: GameState -> FilePath -> IO () -- writes a game to a file
 writeGame gm path = writeFile path (show gm)
 
-loadGame :: FilePath -> IO GameState --untested
+loadGame :: FilePath -> GameState --untested
 loadGame path = do
     contents <- readFile path
     let game = read contents :: GameState
@@ -429,4 +423,9 @@ play :: IO () -- main that uses constant number of rows and columns
 play = playGame (makeGameState 6 7)
 
 main :: IO ()
-main = undefined -- needs to read a game file and print the winner
+main = do -- undefined -- needs to read a game file and print the winner
+  putStrLn "Enter the name of the file you want to load"
+  file <- getLine
+  putStr(prettyPrintGameState (loadGame file))
+  
+  
