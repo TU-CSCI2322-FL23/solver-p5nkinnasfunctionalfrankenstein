@@ -423,9 +423,10 @@ play :: IO () -- main that uses constant number of rows and columns
 play = playGame (makeGameState 6 7)
 
 main :: IO ()
-main = do -- undefined -- needs to read a game file and print the winner
+main = do -- needs to read a game file and print the winner
   putStrLn "Enter the name of the file you want to load"
   file <- getLine
   putStr(prettyPrintGameState (loadGame file))
+  --putStrLn(winnerOfGame (snd (loadGame file))) -- this is not working
   
   
