@@ -237,19 +237,15 @@ bestMove gameState@(Just player, game) =
 --         res = itK k gmSt 
 --         --moves = getAvailableMoves gameState 
 
-playThrough :: GameState -> GameState
-playThrough gmSt =
-    if isNothing (winnerOfGame gm)
-    then playThrough newGmSt
-    else newGmSt
-    where ply = fst gmSt
-          gm = snd gmSt
-          moves = getAvailableMoves gmSt
-          bestMove = head moves
-          newGmSt = makeMove bestMove gmSt
-
 whoWillWin :: GameState -> Maybe Winner -- checks who will win -- doesn't account for ties
-whoWillWin gmSt = winnerOfGame (snd (playThrough gmSt))
+whoWillWin gmSt = 
+  if isNothing (winnerOfGame gm)
+  then whoWillWin newGmSt
+  else winnerOfGame gm
+  where ply = fst gmSt
+        gm = snd gmSt
+        moves = getAvailableMoves gmSt
+        newGmSt = makeMove (bestMove gmSt) gmSt
 
 gameToString2 :: Game -> String -- converts a game to a string
 gameToString2 gm = if length gm == 0 then [] else concat function
