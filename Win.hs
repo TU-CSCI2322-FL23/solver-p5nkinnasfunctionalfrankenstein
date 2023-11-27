@@ -14,14 +14,14 @@ fourInRow elem lst = aux lst 0
       | x == elem = aux xs (count + 1)
       | otherwise = aux xs 0
 
-winWithK :: Eq a => a -> [a] -> Int -> Bool
-winWithK elem lst k  = aux lst 0
-  where
-    aux [] count = count >= k
-    aux _ k = True
-    aux (x:xs) count
-      | x == elem = aux xs (count + 1)
-      | otherwise = aux xs 0
+-- winWithK :: Eq a => a -> [a] -> Int -> Bool
+-- winWithK elem lst k  = aux lst 0
+--   where
+--     aux [] count = count >= k
+--     aux _ k = True
+--     aux (x:xs) count
+--       | x == elem = aux xs (count + 1)
+--       | otherwise = aux xs 0
 
 diagonals1 :: Game -> Game -- Check this type of diagonal (/)
 diagonals1 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x <= y]
