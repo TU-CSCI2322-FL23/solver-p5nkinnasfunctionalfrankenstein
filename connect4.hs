@@ -6,12 +6,12 @@ data Player = Red | Black deriving (Show, Eq, Read)
 type Column = [Maybe Player]
 type Game = [Column]
 data Winner = Win Player | Tie deriving (Show, Eq, Read)
-type GameState = (Maybe Player, Game)
+type GameState = (Player, Game)
 --type Winner = Maybe Player
 type Move = Int
 
 makeGameState :: Int -> Int -> GameState -- makes a blank game of size n x m
-makeGameState n m = (Just Red, [[Nothing | x <- [1..n]] | y <- [1..m]])
+makeGameState n m = (Red, [[Nothing | x <- [1..n]] | y <- [1..m]])
 
 playerToChar :: Maybe Player -> Char -- converts player to char
 playerToChar (Just Red) = 'R'
@@ -43,7 +43,7 @@ legalMove gm n =
     not (n > length gm || n < 1) && colHasNothing (dexColNum gm n)
 
 makeMove :: Move -> GameState -> GameState -- makes a move in a game
-makeMove mv gmSt = (switchPlayer ply, frntGm ++ [insertPlay (head bkGm) ply] ++ tail bkGm)
+makeMove mv gmSt = (switchPlayer ply, frntGm ++ [insertPlay (head bkGm) (Just ply)] ++ tail bkGm)
     where gm = snd gmSt
           ply = fst gmSt
           num = mv-1
@@ -90,9 +90,9 @@ displayGame gm = putStrLn (prettyPrintGame gm) --putStrLn (printGm gm) -- Non pr
 
 --player logic
 
-switchPlayer :: Maybe Player -> Maybe Player -- switches player
-switchPlayer (Just Red) = Just Black
-switchPlayer (Just Black) = Just Red
+switchPlayer :: Player -> Player -- switches player
+switchPlayer (Red) = Black
+switchPlayer (Black) = Red
 
 changePlayer :: GameState -> GameState -- changes the player in a game state
 changePlayer (ply, gm) = (switchPlayer ply, gm)
@@ -151,13 +151,13 @@ checkDiagonalWin gm ply = any (fourInRow ply) (diagonals1 gm ++ diagonals2 gm)
 checkWin :: Game -> Maybe Player -> Bool -- checks if a player has won
 checkWin gm ply = checkStraightWin gm ply || checkStraightWin (rotateGame gm) ply || checkDiagonalWin gm ply
 
-winnerOfGame :: Game -> Maybe Winner -- returns the winner of a game
-winnerOfGame game
+winnerOfGame :: GameState -> Maybe Winner -- returns the winner of a game
+winnerOfGame (ply, game)
   | checkWin game (Just Red) = Just (Win Red) -- Red Win
   | checkWin game (Just Black) = Just (Win Black) -- Black Win
   | null moves = Just Tie -- Tie
   | otherwise = Nothing -- Game is ongoing
-  where moves = getAvailableMoves (Nothing, game)
+  where moves = getAvailableMoves (ply, game)
 
 -- Game play logic
 
@@ -187,7 +187,7 @@ gameTie gmSt = do
 
 -- HELPER FUNCTION FOR bestMove
 evaluateBoard :: GameState -> Int
-evaluateBoard gameState@(Just player, game)
+evaluateBoard gameState@(player, game)
   | checkWin game (Just Red) = if player == Red then 1000 else -1000
   | checkWin game (Just Black) = if player == Black then 1000 else -1000
   | otherwise = 0
@@ -196,7 +196,7 @@ evaluateBoard gameState@(Just player, game)
 -- HELPER FUNCTION FOR bestMove
 minimax :: GameState -> Int -> Bool -> Int
 minimax gameState@(player, game) depth isMaximizingPlayer
-  | depth == 0 || isGameDecided (winnerOfGame game) = evaluateBoard gameState
+  | depth == 0 || isGameDecided (winnerOfGame gameState) = evaluateBoard gameState
   | isMaximizingPlayer =
       maximum [ minimax (makeMove move gameState) (depth - 1) False | move <- getAvailableMoves gameState, legalMove game move ]
   | otherwise =
@@ -207,7 +207,7 @@ minimax gameState@(player, game) depth isMaximizingPlayer
     isGameDecided (Just _) = True
 
 bestMove :: GameState -> Move
-bestMove gameState@(Just player, game) =
+bestMove gameState@(player, game) =
   let initPlayer = player
       moves = getAvailableMoves gameState
       moveScores = [(minimax (makeMove move gameState) depth (player /= Red), move) | move <- moves]
@@ -237,9 +237,9 @@ bestMove gameState@(Just player, game) =
 
 whoWillWin :: GameState -> Maybe Winner -- checks who will win -- doesn't account for ties
 whoWillWin gmSt =
-  if isNothing (winnerOfGame gm)
+  if isNothing (winnerOfGame gmSt)
   then whoWillWin newGmSt
-  else winnerOfGame gm
+  else winnerOfGame gmSt
   where ply = fst gmSt
         gm = snd gmSt
         moves = getAvailableMoves gmSt
@@ -259,7 +259,7 @@ testBM x
     | x == 6 = answer3
     | x == 7 = gm4
   where
-    gm = (Just Red,
+    gm = (Red,
            rotateGame
              [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
               [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
@@ -267,7 +267,7 @@ testBM x
               [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
               [Just Black, Just Black, Just Black, Nothing, Nothing, Nothing,Nothing],
               [Just Red, Just Red, Just Red, Nothing, Nothing, Nothing, Nothing]])
-    answer = (Just Black,
+    answer = (Black,
            rotateGame
              [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
               [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
@@ -275,7 +275,7 @@ testBM x
               [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
               [Just Black, Just Black, Just Black, Nothing, Nothing, Nothing,Nothing],
               [Just Red, Just Red, Just Red, Just Red, Nothing, Nothing,Nothing]])
-    gm2 = (Just Red,
+    gm2 = (Red,
            rotateGame
              [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
               [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
@@ -283,7 +283,7 @@ testBM x
               [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
               [Just Black, Just Black, Just Black, Nothing, Nothing, Nothing,Nothing],
               [Just Red, Just Red, Just Red, Just Black, Just Red, Just Red,Just Red]])
-    answer2 = (Just Black,
+    answer2 = (Black,
            rotateGame
              [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
               [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
@@ -291,7 +291,7 @@ testBM x
               [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
               [Just Black, Just Black, Just Black, Just Black, Nothing, Nothing, Nothing],
               [Just Red, Just Red, Just Red, Just Black, Just Red, Just Red, Just Red]])
-    gm3 = (Just Red,
+    gm3 = (Red,
              [[Nothing, Nothing, Nothing, Nothing, Nothing, Just Red],
                 [Nothing, Nothing, Nothing, Nothing, Just Red, Just Black],
                 [Nothing, Nothing, Nothing, Just Red, Just Red, Just Black],
@@ -299,7 +299,7 @@ testBM x
                 [Nothing, Nothing, Nothing, Nothing, Nothing, Just Black],
                 [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
                 [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]])
-    answer3 = (Just Black,
+    answer3 = (Black,
            [[Nothing, Nothing, Nothing, Nothing, Nothing, Just Red],
                 [Nothing, Nothing, Nothing, Nothing, Just Red, Just Black],
                 [Nothing, Nothing, Nothing, Just Red, Just Red, Just Black],
@@ -307,7 +307,7 @@ testBM x
                 [Nothing, Nothing, Nothing, Nothing, Nothing, Just Black],
                 [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
                 [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]])
-    gm4 = (Just Black, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+    gm4 = (Black, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
             [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
             [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
             [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
@@ -334,28 +334,28 @@ multiWinTest gmSt =
           putStrLn ("But got: \n" ++ prettyPrintGame (snd moveMade))
 
   where moveMade = makeMove (bestMove gmSt) gmSt
-        answer1 = (Just Red, [[Nothing, Nothing, Just Black, Just Red, Just Black, Just Red],
+        answer1 = (Red, [[Nothing, Nothing, Just Black, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
                 [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
                 [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
                 [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
-        answer2 = (Just Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+        answer2 = (Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
                 [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
                 [Nothing, Nothing, Just Black, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
                 [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
-        answer3 = (Just Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+        answer3 = (Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
                 [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
                 [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
                 [Nothing, Nothing, Just Black, Just Red, Just Black, Just Red]])
-        answer4 = (Just Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+        answer4 = (Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
                 [Nothing, Nothing, Just Black, Just Red, Just Black, Just Red],
                 [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
@@ -417,8 +417,8 @@ playGame gmSt  = do
             newGm = snd newGmSt
             newPly = fst newGmSt
 
-        if checkWin newGm ply
-        then playerWon newGm ply
+        if checkWin newGm (Just ply)
+        then playerWon newGm (Just ply)
         else if getAvailableMoves newGmSt == []
         then gameTie newGmSt
         else playGame newGmSt
