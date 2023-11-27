@@ -78,8 +78,10 @@ prettyPrintGame gm = numString ++ "--" ++ barString ++ init gameString
           numString = concat nums ++ "\n"
           barString = concat bar ++ "\n"
           gameString = concat gameBars
+
 prettyPrintGameState :: GameState -> String -- pretty prints a game state
 prettyPrintGameState (ply, gm) = prettyPrintGame (gm)
+
 printGame :: Game -> String -- prints a game
 printGame gm = gameToString (rotateGame gm)
 
