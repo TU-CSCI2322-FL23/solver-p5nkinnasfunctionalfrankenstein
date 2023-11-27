@@ -378,7 +378,7 @@ readGame str = read str :: GameState
 writeGame :: GameState -> FilePath -> IO () -- writes a game to a file
 writeGame gm path = writeFile path (show gm)
 
-loadGame :: FilePath -> GameState --untested
+loadGame :: FilePath -> IO GameState --untested
 loadGame path = do
     contents <- readFile path
     let game = read contents :: GameState
@@ -423,10 +423,9 @@ play :: IO () -- main that uses constant number of rows and columns
 play = playGame (makeGameState 6 7)
 
 main :: IO ()
-main = do -- needs to read a game file and print the winner
-  putStrLn "Enter the name of the file you want to load"
-  file <- getLine
-  putStr(prettyPrintGameState (loadGame file))
+main = undefined -- do -- needs to read a game file and print the winner
+  -- putStrLn "Enter the name of the file you want to load"
+  -- file <- getLine
   --putStrLn(winnerOfGame (snd (loadGame file))) -- this is not working
   
   
