@@ -51,10 +51,3 @@ switchPlayer Black = Red
 
 changePlayer :: GameState -> GameState -- changes the player in a game state
 changePlayer (ply, gm) = (switchPlayer ply, gm)
-
-main :: IO ()
-main = undefined -- do -- needs to read a game file and print the winner
-  -- putStrLn "Enter the name of the file you want to load"
-  -- file <- getLine
-  --putStrLn(winnerOfGame (snd (loadGame file))) -- this is not working
-
