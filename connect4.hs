@@ -10,23 +10,6 @@ type GameState = (Maybe Player, Game)
 --type Winner = Maybe Player
 type Move = Int
 
-
--- stuff the needs to be done
--- make game contain current player
--- diagonal win check
--- add current player to makeMove 
--- check legal moves (Done)
-
--- Define data types or type aliases for a player, game state, move, and winner. (Done)
-
--- Be able to determine who has won the game state, if anyone. (Done)
-
--- Be able to compute the result of making a legal move in a game state. (Done)
-
--- Be able to compute the legal moves from a game state. (Done)
-
--- (If time) Be able to pretty-print a game into a string. (Done)
-
 makeGameState :: Int -> Int -> GameState -- makes a blank game of size n x m
 makeGameState n m = (Just Red, [[Nothing | x <- [1..n]] | y <- [1..m]])
 
@@ -200,8 +183,6 @@ gameTie gmSt = do
 
 
 
-
-
 -- HELPER FUNCTION FOR bestMove
 evaluateBoard :: GameState -> Int
 evaluateBoard gameState@(Just player, game)
@@ -255,11 +236,6 @@ bestMove gameState@(Just player, game) =
 --   where k = 4
 --         res = itK k gmSt 
 --         --moves = getAvailableMoves gameState 
-
-
-
-
-
 
 playThrough :: GameState -> GameState
 playThrough gmSt =
@@ -407,7 +383,6 @@ runTests = do
 
 readGame :: String -> GameState -- reads a game from a string
 readGame str = read str :: GameState
-
 
 
 writeGame :: GameState -> FilePath -> IO () -- writes a game to a file
