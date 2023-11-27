@@ -143,18 +143,6 @@ winWithK elem lst k  = aux lst 0
       | x == elem = aux xs (count + 1)
       | otherwise = aux xs 0
 
-
--- transposeGame :: Game -> Game -- allows checkStraightWin to read the columns
--- transposeGame [] = []
--- transposeGame ([]:_) = []
--- transposeGame gm = map head gm : transposeGame (map tail gm)
-
-
--- checkHorizontalWin :: Game -> Player -> Bool -- checks if a horizontal win has occured
--- checkHorizontalWin game player = any (isSubString playerString) $ map colToString game
---   where
---     playerString = replicate 4 (playerToChar player)
-
 diagonals1 :: Game -> Game -- Check this type of diagonal (/)
 diagonals1 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x <= y]
   where height = length game
@@ -210,11 +198,7 @@ gameTie gmSt = do
             else playGame (makeGameState (length (head gm)) (length gm))
     where gm = snd gmSt
 
--- getWinningMoves :: Game -> Player -> [Move] -- gets the winning moves in a game
--- getWinningMoves gm ply = [x | x <- getAvailableMoves gm, checkWin (makeMove x gm) ply]
 
--- whoWillWin :: GameState -> Winner -- checks who will win
--- whoWillWin gmSt = undefined
 
 
 
@@ -239,24 +223,13 @@ minimax gameState@(player, game) depth isMaximizingPlayer
     isGameDecided Nothing = False
     isGameDecided (Just _) = True
 
-bestMoveR :: GameState -> Move
-bestMoveR gameState@(Just player, game) =
+bestMove :: GameState -> Move
+bestMove gameState@(Just player, game) =
   let initPlayer = player
       moves = getAvailableMoves gameState
       moveScores = [(minimax (makeMove move gameState) depth (player /= Red), move) | move <- moves]
       bestScore
         | player == Red = maximum moveScores
-        | otherwise = minimum moveScores
-      depth = 5--used to be 5
-  in snd bestScore
-
-bestMoveB :: GameState -> Move
-bestMoveB gameState@(Just player, game) =
-  let initPlayer = player
-      moves = getAvailableMoves gameState
-      moveScores = [(minimax (makeMove move gameState) depth (player /= Black), move) | move <- moves]
-      bestScore
-        | player == Black = maximum moveScores
         | otherwise = minimum moveScores
       depth = 5--used to be 5
   in snd bestScore
@@ -282,10 +255,10 @@ bestMoveB gameState@(Just player, game) =
 --   where k = 4
 --         res = itK k gmSt 
 --         --moves = getAvailableMoves gameState 
-        
-      
 
- 
+
+
+
 
 
 playThrough :: GameState -> GameState
@@ -372,13 +345,6 @@ testBM x
             [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
             [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
 
--- bestMoveTest (testBM 1) (testBM 2) -- test for bestMove
-
-bestMove :: GameState -> Move
-bestMove gmSt = if ply == Just Black then bestMoveB gmSt else bestMoveR gmSt
-  where ply = fst gmSt
-        gm = snd gmSt
-
 bestMoveTest :: GameState -> GameState -> IO()
 bestMoveTest gmSt answer =
     if answer == moveMade then putStrLn "Test Passed"
@@ -389,7 +355,7 @@ bestMoveTest gmSt answer =
           moveMade = makeMove (bestMove gmSt) gmSt
 
 multiWinTest :: GameState -> IO()
-multiWinTest gmSt = 
+multiWinTest gmSt =
   if answer1 == moveMade || answer2 == moveMade || answer3 == moveMade || answer4 == moveMade then putStrLn "Test Passed"
   else do putStrLn "Test Failed"
           putStrLn ("Expected: \n" ++ prettyPrintGame (snd answer1))
@@ -429,13 +395,13 @@ multiWinTest gmSt =
 -- bestMoveTest (testBM 1) (testBM 2) -- test for bestMove
 runTests :: IO ()
 runTests = do
-    putStrLn("\nTest 1\n")
+    putStrLn "\nTest 1\n"
     bestMoveTest (testBM 1) (testBM 2)
-    putStrLn("\nTest 2\n")
+    putStrLn "\nTest 2\n"
     bestMoveTest (testBM 3) (testBM 4)
-    putStrLn("\nTest 3\n")
+    putStrLn "\nTest 3\n"
     bestMoveTest (testBM 5) (testBM 6)
-    putStrLn("\nTest 4\n")
+    putStrLn "\nTest 4\n"
     multiWinTest (testBM 7)
 
 
@@ -487,15 +453,6 @@ playGame gmSt  = do
         else if getAvailableMoves newGmSt == []
         then gameTie newGmSt
         else playGame newGmSt
-
--- main :: IO () -- main that asks for number of rows and columns
--- main = do
---     putStrLn "Enter the number of rows"
---     rows <- getLine
---     putStrLn "Enter the number of columns"
---     cols <- getLine
---     let gm = makeGame (read cols) (read rows)
---     playGame gm Red
 
 play :: IO () -- main that uses constant number of rows and columns 
 play = playGame (makeGameState 6 7)
