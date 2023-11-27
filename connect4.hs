@@ -1,10 +1,11 @@
-import Data.Maybe (isNothing)
+import Data.Maybe
+
 
 
 data Player = Red | Black deriving (Show, Eq, Read)
 type Column = [Maybe Player]
 type Game = [Column]
-data Winner = Win Player | Tie Player
+data Winner = Win Player | Tie Player deriving (Show, Eq, Read)
 type GameState = (Maybe Player, Game)
 --type Winner = Maybe Player
 type Move = Int
@@ -108,7 +109,7 @@ switchPlayer (Just Red) = Just Black
 switchPlayer (Just Black) = Just Red
 
 changePlayer :: GameState -> GameState -- changes the player in a game state
-changePlayer gmSt = (switchPlayer (fst gmSt), snd gmSt)
+changePlayer (ply, gm) = (switchPlayer ply, gm)
 
 isSubString :: String -> String -> Bool -- checks if a string is a substring of another string
 isSubString [] _ = True
@@ -132,6 +133,16 @@ fourInRow elem lst = aux lst 0
     aux (x:xs) count
       | x == elem = aux xs (count + 1)
       | otherwise = aux xs 0
+
+winWithK :: Eq a => a -> [a] -> Int -> Bool
+winWithK elem lst k  = aux lst 0
+  where
+    aux [] count = count >= k
+    aux _ k = True
+    aux (x:xs) count
+      | x == elem = aux xs (count + 1)
+      | otherwise = aux xs 0
+
 
 -- transposeGame :: Game -> Game -- allows checkStraightWin to read the columns
 -- transposeGame [] = []
@@ -228,15 +239,53 @@ minimax gameState@(player, game) depth isMaximizingPlayer
     isGameDecided Nothing = False
     isGameDecided (Just _) = True
 
-bestMove :: GameState -> Move
-bestMove gameState@(Just player, game) =
-  let moves = getAvailableMoves gameState
+bestMoveR :: GameState -> Move
+bestMoveR gameState@(Just player, game) =
+  let initPlayer = player
+      moves = getAvailableMoves gameState
       moveScores = [(minimax (makeMove move gameState) depth (player /= Red), move) | move <- moves]
       bestScore
         | player == Red = maximum moveScores
         | otherwise = minimum moveScores
-      depth = 5
+      depth = 5--used to be 5
   in snd bestScore
+
+bestMoveB :: GameState -> Move
+bestMoveB gameState@(Just player, game) =
+  let initPlayer = player
+      moves = getAvailableMoves gameState
+      moveScores = [(minimax (makeMove move gameState) depth (player /= Black), move) | move <- moves]
+      bestScore
+        | player == Black = maximum moveScores
+        | otherwise = minimum moveScores
+      depth = 5--used to be 5
+  in snd bestScore
+
+-- checkWinWithK :: Int -> GameState -> Bool
+-- checkWinWithK k (ply, gm) = any (winWithK ply ((diagonals1 gm) ++ (diagonals2 gm))) k || any (winWithK ply gm) k
+
+
+
+-- checkForK :: Int -> GameState -> Move -> Move
+-- checkForK _ _ 0 = -1
+-- checkForK k (ply, gm) mv = if checkWinWithK k (makeMove mv (ply, gm)) then mv else checkForK k (ply, gm) (mv+1)
+
+-- itK :: Int -> GameState -> Move
+-- itK 0 _ = -1
+-- itK k (ply, gm) = if rowRes == -1 then itK (k-1) (ply, gm) else rowRes
+--   where rowRes = checkForK k (ply, gm) 1
+
+
+
+-- bestMove2 :: GameState -> Move 
+-- bestMove2 gmSt = if res == -1 then 7 else res 
+--   where k = 4
+--         res = itK k gmSt 
+--         --moves = getAvailableMoves gameState 
+        
+      
+
+ 
 
 
 playThrough :: GameState -> GameState
@@ -266,7 +315,6 @@ testBM x
     | x == 5 = gm3
     | x == 6 = answer3
     | x == 7 = gm4
-    | x == 8 = answer4
   where
     gm = (Just Red,
            rotateGame
@@ -301,37 +349,35 @@ testBM x
               [Just Black, Just Black, Just Black, Just Black, Nothing, Nothing, Nothing],
               [Just Red, Just Red, Just Red, Just Black, Just Red, Just Red, Just Red]])
     gm3 = (Just Red,
-           rotateGame
-             [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-              [Just Red, Nothing, Just Red, Just Red, Nothing, Nothing, Nothing],
-              [Just Black, Just Red, Just Black, Just Red, Nothing, Nothing,Nothing],
-              [Just Red, Just Black, Just Black, Just Black, Nothing, Nothing, Nothing]])
-    answer3 = (Just Red,
-           rotateGame
-             [[Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-              [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
-              [Nothing, Nothing, Nothing, Just Red, Nothing, Nothing, Nothing],
-              [Just Red, Nothing, Just Red, Just Red, Nothing, Nothing, Nothing],
-              [Just Black, Just Red, Just Black, Just Red, Nothing, Nothing,Nothing],
-              [Just Red, Just Black, Just Black, Just Black, Nothing, Nothing, Nothing]])
-    gm4 = (Just Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+             [[Nothing, Nothing, Nothing, Nothing, Nothing, Just Red],
+                [Nothing, Nothing, Nothing, Nothing, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Black, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Just Black],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]])
+    answer3 = (Just Black,
+           [[Nothing, Nothing, Nothing, Nothing, Nothing, Just Red],
+                [Nothing, Nothing, Nothing, Nothing, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Red, Just Black],
+                [Nothing, Nothing, Just Red, Just Black, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Just Black],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing],
+                [Nothing, Nothing, Nothing, Nothing, Nothing, Nothing]])
+    gm4 = (Just Black, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
             [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
             [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
             [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
             [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
             [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
-            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
-    answer4 = (Just Black, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
-            [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
-            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
-            [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
-            [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
-            [Nothing, Nothing, Just Red, Just Black, Just Red, Just Black],
             [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
 
 -- bestMoveTest (testBM 1) (testBM 2) -- test for bestMove
+
+bestMove :: GameState -> Move
+bestMove gmSt = if ply == Just Black then bestMoveB gmSt else bestMoveR gmSt
+  where ply = fst gmSt
+        gm = snd gmSt
 
 bestMoveTest :: GameState -> GameState -> IO()
 bestMoveTest gmSt answer =
@@ -342,14 +388,55 @@ bestMoveTest gmSt answer =
     where gmAnswer = snd answer
           moveMade = makeMove (bestMove gmSt) gmSt
 
+multiWinTest :: GameState -> IO()
+multiWinTest gmSt = 
+  if answer1 == moveMade || answer2 == moveMade || answer3 == moveMade || answer4 == moveMade then putStrLn "Test Passed"
+  else do putStrLn "Test Failed"
+          putStrLn ("Expected: \n" ++ prettyPrintGame (snd answer1))
+          putStrLn ("Or: \n"++ prettyPrintGame (snd answer2))
+          putStrLn ("Or: \n"++ prettyPrintGame (snd answer3))
+          putStrLn ("But got: \n" ++ prettyPrintGame (snd moveMade))
 
+  where moveMade = makeMove (bestMove gmSt) gmSt
+        answer1 = (Just Red, [[Nothing, Nothing, Just Black, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
+        answer2 = (Just Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Just Black, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
+        answer3 = (Just Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Just Black, Just Red, Just Black, Just Red]])
+        answer4 = (Just Red, [[Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Just Black, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red],
+                [Nothing, Nothing, Nothing, Just Black, Just Red, Just Black],
+                [Nothing, Nothing, Nothing, Just Red, Just Black, Just Red]])
 -- bestMoveTest (testBM 1) (testBM 2) -- test for bestMove
 runTests :: IO ()
 runTests = do
+    putStrLn("\nTest 1\n")
     bestMoveTest (testBM 1) (testBM 2)
+    putStrLn("\nTest 2\n")
     bestMoveTest (testBM 3) (testBM 4)
+    putStrLn("\nTest 3\n")
     bestMoveTest (testBM 5) (testBM 6)
-    bestMoveTest (testBM 7) (testBM 8)
+    putStrLn("\nTest 4\n")
+    multiWinTest (testBM 7)
 
 
 readGame :: String -> GameState -- reads a game from a string
@@ -410,5 +497,8 @@ playGame gmSt  = do
 --     let gm = makeGame (read cols) (read rows)
 --     playGame gm Red
 
-main :: IO () -- main that uses constant number of rows and columns 
-main = playGame (makeGameState 6 7)
+play :: IO () -- main that uses constant number of rows and columns 
+play = playGame (makeGameState 6 7)
+
+main :: IO ()
+main = undefined -- needs to read a game file and print the winner
