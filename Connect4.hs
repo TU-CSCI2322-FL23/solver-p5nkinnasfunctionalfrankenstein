@@ -2,7 +2,6 @@ module Connect4 where
 import Data.Maybe
 --import IO
 
-
 data Player = Red | Black deriving (Show, Eq, Read)
 type Column = [Maybe Player]
 type Game = [Column]
