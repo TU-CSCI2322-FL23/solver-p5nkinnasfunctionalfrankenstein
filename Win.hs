@@ -23,24 +23,55 @@ fourInRow elem lst = aux lst 0
 --       | x == elem = aux xs (count + 1)
 --       | otherwise = aux xs 0
 
-diagonals1 :: Game -> Game -- Check this type of diagonal (/)
-diagonals1 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x <= y]
-  where height = length game
-        width = length (head game)
-        diag g (i, j)
-          | i < width && j >= 0 = (g !! j !! i) : diag g (i+1, j-1)
-          | otherwise = []
+-- diagonals1 :: Game -> Game -- Check this type of diagonal (/)
+-- diagonals1 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x <= y]
+--   where height = length game
+--         width = length (head game)
+--         diag g (i, j)
+--           | i < width && j >= 0 = (g !! j !! i) : diag g (i+1, j-1)
+--           | otherwise = []
 
-diagonals2 :: Game -> Game -- Check this type of diagonal (\)
-diagonals2 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x + y < height]
-  where height = length game
-        width = length (head game)
-        diag g (i, j)
-          | i < width && j < height = (g !! j !! i) : diag g (i+1, j+1)
-          | otherwise = []
+-- diagonals2 :: Game -> Game -- Check this type of diagonal (\)
+-- diagonals2 game = [diag game (x, y) | y <- [0..height-1], x <- [0..width-1], x + y < height]
+--   where height = length game
+--         width = length (head game)
+--         diag g (i, j)
+--           | i < width && j < height = (g !! j !! i) : diag g (i+1, j+1)
+--           | otherwise = []
 
-checkDiagonalWin :: Game -> Maybe Player -> Bool -- checks if a player has won in a diagonal line
-checkDiagonalWin gm ply = any (fourInRow ply) (diagonals1 gm ++ diagonals2 gm)
+-- checkDiagonalWin :: Game -> Maybe Player -> Bool -- checks if a player has won in a diagonal line
+-- checkDiagonalWin gm ply = any (fourInRow ply) (diagonals1 gm ++ diagonals2 gm)
+
+-- Function to check diagonal wins
+-- Function to check diagonal wins
+
+
+
+
+-- I left the other diagonal check functions just In case this one does not work, although it did pass the tests
+checkDiagonalWin :: Game -> Maybe Player -> Bool
+checkDiagonalWin game player = checkDownDiags game player || checkUpDiags game player
+
+-- Check this type of diagonal (\)
+checkDownDiags :: Game -> Maybe Player -> Bool
+checkDownDiags game player = any (fourInRow player) downDiagonals
+  where
+    downDiagonals = [downDiag x | x <- [0..width-4]]
+    downDiag x = [game !! (y + d) !! (x + d) | y <- [0..height-4], d <- [0..3], valid (x + d) (y + d)]
+    valid x y = x < width && y < height
+    width = length (head game)
+    height = length game
+
+-- Check this type of diagonal (/)
+checkUpDiags :: Game -> Maybe Player -> Bool
+checkUpDiags game player = any (fourInRow player) upDiagonals
+  where
+    upDiagonals = [upDiag x | x <- [0..width-4]]
+    upDiag x = [game !! (y - d) !! (x + d) | y <- [3..height-1], d <- [0..3], valid (x + d) (y - d)]
+    valid x y = x < width && y >= 0 && y < height
+    width = length (head game)
+    height = length game
+
 
 checkWin :: Game -> Maybe Player -> Bool -- checks if a player has won
 checkWin gm ply = checkStraightWin gm ply || checkStraightWin (rotateGame gm) ply || checkDiagonalWin gm ply
