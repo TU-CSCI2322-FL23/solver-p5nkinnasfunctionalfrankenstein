@@ -16,9 +16,23 @@ import Data.List
 -- -i interactive
 
 
-import System.Environment
 
-import LoadAll
+import System.Environment
+import Connect4
+import Win
+import IO
+import Main
+import Solver
+import Tests
+
+
+
+-- still need rateGame
+-- also need to convert IO gmst to gmst
+
+stringToMove :: String -> Move
+stringToMove str = read str :: Move
+
 
 
 main :: IO ()
@@ -29,7 +43,7 @@ main = do
 verboseOutput :: String -> String -> IO ()
 verboseOutput file move = do
     let game = loadGame file
-
+        rating = rateGame game
     putStrLn $ "Move: " ++ move
     putStrLn $ "Rating: " ++ rating
 
@@ -39,14 +53,14 @@ makeMoveOutput file move = do
     -- Here you should implement the logic to make the move and print the resulting board
     putStrLn $ "Move made: " ++ move
     putStrLn "Resulting board: "
-    prettyPrintGameState (makeMove move game) 
+    putStrLn (prettyPrintGameState (makeMove (stringToMove move) game))
     -- printBoard board
 
 winnerOutput :: String -> IO ()
 winnerOutput file = do
     let game = loadGame file
         winner = whoWillWin game
-        in putStrLn $ "Winner: " ++ winner
+        in putStrLn $ "Winner: " ++ winnerToString winner
 
 loadAndPlayOutput :: String -> IO ()
 loadAndPlayOutput file = do
@@ -63,57 +77,39 @@ helpOutput = do
     putStrLn "  -m <move> move"
     putStrLn "  -v verbose"
     putStrLn "  -i interactive"
+    putStrLn "  -p <file> play file"
     
-
-interactiveOutput :: IO ()
-interactiveOutput = play()
 
 processArgs :: [String] -> IO ()
 processArgs [] = return ()
 processArgs ("-h") = do
-    usage
+    helpOutput
 processArgs ("-w":file) = do
     putStrLn "Winner flag activated"
     winnerOutput file
-processArgs ("-d":file) = do
-    putStrLn $ "Depth flag activated with depth " ++ x
-processArgs ("-m":file:move) = do
+processArgs ("-d":depth:file) = do
+    putStrLn $ "Depth flag activated with depth " ++ depth
+processArgs ("-m":file:move:xs) = do
     makeMoveOutput file move
-processArgs ("--move":file:move) = do
+processArgs ("--move":file:move:xs) = do
     makeMoveOutput file move
-processArgs ("-v":file:move) = do
+processArgs ("-v":file:move:xs) = do
     verboseOutput file move
-processArgs ("--verbose":file:move) = do
+processArgs ("--verbose":file:move:xs) = do
     verboseOutput file move
-processArgs ("-i") = do
+processArgs ("-i":xs) = do
     putStrLn "Interactive flag activated"
-    interactiveOutput
-processArgs ("--interactive") = do
+    play
+processArgs ("--interactive":xs) = do
     putStrLn "Interactive flag activated"
-    interactiveOutput
-processArgs ("-i":file) = do
+    play
+processArgs ("-p":file:xs) = do
     putStrLn "Interactive flag activated"
     loadAndPlayOutput file
-processArgs ("--interactive":file) = do
+processArgs ("--playFile":file:xs) = do
     putStrLn "Interactive flag activated"
     loadAndPlayOutput file
 processArgs (x:xs) = do
     putStrLn $ "Unknown flag: " ++ x
-
-
-
-
-
-
--- usage :: IO ()
--- usage = do
---     putStrLn "Usage: connect4 [flags]"
---     putStrLn "Flags:"
---     putStrLn "  -h help"
---     putStrLn "  -w winner"
---     putStrLn "  -d <num> depth"
---     putStrLn "  -m <move> move"
---     putStrLn "  -v verbose"
---     putStrLn "  -i interactive"
 
 
