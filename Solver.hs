@@ -52,6 +52,10 @@ whoWillWin gmSt =
         newGmSt = makeMove (bestMove gmSt) gmSt
 
 
+whoWillWin2 :: GameState -> Maybe Winner -- checks who will win -- doesn't account for ties
+whoWillWin2 gmSt = undefined
+
+
 putBestMove :: GameState -> IO () -- puts the best move in a game -- not done
 putBestMove gmSt = do
     let ply = fst gmSt
