@@ -13,6 +13,11 @@ playerToString (Just Red) = "Just Red, "
 playerToString (Just Black) = "Just Black, "
 playerToString Nothing = "Nothing, "
 
+winnerToString :: Maybe Winner -> String -- converts winner to string
+winnerToString (Just (Win Red)) = "Just (Win Red)"
+winnerToString (Just (Win Black)) = "Just (Win Black)"
+winnerToString (Just Tie) = "Just Tie"
+
 gameToString2 :: Game -> String -- converts a game to a string
 gameToString2 gm = if length gm == 0 then [] else concat function
     where function = map playerToString (head gm) ++ "\n" : [gameToString2 (tail gm)]
