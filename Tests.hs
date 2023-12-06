@@ -131,3 +131,51 @@ runTests = do
     putStrLn "\nTest 4\n"
     multiWinTest (testBM 7)
 
+
+
+testRateGame :: Game -> Rating -> IO ()
+testRateGame game expectedRating = do
+    let actualRating = rateGame game
+    if actualRating == expectedRating
+    then putStrLn "RateGame Test Passed"
+    else do
+        putStrLn "RateGame Test Failed"
+        putStrLn ("Expected rating: " ++ show expectedRating)
+        putStrLn ("Actual rating: " ++ show actualRating)
+
+
+rateGameTestCases :: [(Game, Rating)]
+rateGameTestCases = [
+    (gm, 0),     -- Neutral game state
+    (gmWinRed, 1000),  -- Red wins
+    (gmWinBlack, -1000) -- Black wins
+  ]
+  where
+
+    gm = createGameFromBoard [
+        [Nothing, Nothing],
+        [Nothing, Nothing]
+      ] -- Neutral game
+
+    gmWinRed = createGameFromBoard [
+        [Just Red, Just Red, Just Red, Just Red],
+        [Nothing, Nothing, Nothing, Nothing]
+      ] -- Red wins
+
+    gmWinBlack = createGameFromBoard [
+        [Just Black, Just Black, Just Black, Just Black],
+        [Nothing, Nothing, Nothing, Nothing]
+      ] -- Black wins
+
+
+    createGameFromBoard :: [[Maybe Player]] -> Game
+    createGameFromBoard board = rotateGame board 
+
+runTests2 :: IO ()
+runTests2 = do
+    putStrLn "\nBest Move Tests\n"
+    bestMoveTest (testBM 1) (testBM 2)
+
+    -- RateGame tests
+    putStrLn "\nRateGame Tests\n"
+    mapM_ (uncurry testRateGame) rateGameTestCases

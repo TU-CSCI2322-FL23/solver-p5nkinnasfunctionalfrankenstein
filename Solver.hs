@@ -5,6 +5,8 @@ import Win
 import Data.Maybe
 import IO
 
+type Rating = Int
+
 
 -- HELPER FUNCTION FOR bestMove
 evaluateBoard :: GameState -> Int
@@ -58,6 +60,21 @@ putBestMove gmSt = do
         bestMove = head moves
     putStrLn ("The best move is " ++ show bestMove)
     playGame (makeMove bestMove gmSt)
+
+
+rateGame :: Game -> Rating
+rateGame game
+  | checkWin game (Just Red) = 1000  -- Best state for Red
+  | checkWin game (Just Black) = -1000 -- Worst state for Red 
+  | otherwise = sum $ map rateColumn game
+  where
+    rateColumn :: Column -> Rating
+    rateColumn col = let
+        redCount = length $ filter (== Just Red) col
+        blackCount = length $ filter (== Just Black) col
+      in redCount - blackCount  -- Positive if favorable for Red, negative for Black
+
+
 
 
 

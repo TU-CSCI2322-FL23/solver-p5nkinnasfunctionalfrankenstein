@@ -3,6 +3,8 @@ import Connect4
 import Win
 
 
+
+
 playerToChar :: Maybe Player -> Char -- converts player to char
 playerToChar (Just Red) = 'R'
 playerToChar (Just Black) = 'B'
