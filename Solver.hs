@@ -8,37 +8,79 @@ import IO
 type Rating = Int
 
 
--- HELPER FUNCTION FOR bestMove
+-- -- HELPER FUNCTION FOR bestMove
+-- evaluateBoard :: GameState -> Int
+-- evaluateBoard gameState@(player, game)
+--   | checkWin game (Just Red) = if player == Red then 1000 else -1000
+--   | checkWin game (Just Black) = if player == Black then 1000 else -1000
+--   | otherwise = 0
+
+
+-- -- HELPER FUNCTION FOR bestMove
+-- minimax :: GameState -> Int -> Bool -> Int
+-- minimax gameState@(player, game) depth isMaximizingPlayer
+--   | depth == 0 || isGameDecided (winnerOfGame gameState) = evaluateBoard gameState
+--   | isMaximizingPlayer =
+--       maximum [ minimax (makeMove move gameState) (depth - 1) False | move <- getAvailableMoves gameState, legalMove game move ]
+--   | otherwise =
+--       minimum [ minimax (makeMove move gameState) (depth - 1) True | move <- getAvailableMoves gameState, legalMove game move ]
+--   where
+--     isGameDecided :: Maybe Winner -> Bool
+--     isGameDecided Nothing = False
+--     isGameDecided (Just _) = True
+
+-- bestMove :: GameState -> Move
+-- bestMove gameState@(player, game) =
+--   let initPlayer = player
+--       moves = getAvailableMoves gameState
+--       moveScores = [(minimax (makeMove move gameState) depth (player /= Red), move) | move <- moves]
+--       bestScore
+--         | player == Red = maximum moveScores
+--         | otherwise = minimum moveScores
+--       depth = 5
+--   in snd bestScore
+
+
+
+--bestMove HELPER
 evaluateBoard :: GameState -> Int
-evaluateBoard gameState@(player, game)
-  | checkWin game (Just Red) = if player == Red then 1000 else -1000
-  | checkWin game (Just Black) = if player == Black then 1000 else -1000
-  | otherwise = 0
+evaluateBoard (player, game)
+  | checkWin game (Just Red) = 1000
+  | checkWin game (Just Black) = -1000
+  | otherwise = calculateBoardScore game
+  where
+    calculateBoardScore :: Game -> Int
+    calculateBoardScore g =
+      let
+        redPotential = countPlayerPieces g (Just Red)       -- used GDP for help
+        blackPotential = countPlayerPieces g (Just Black)
+      in redPotential - blackPotential
 
+    countPlayerPieces :: Game -> Maybe Player -> Int
+    countPlayerPieces g p = sum [length $ filter (== p) column | column <- g]
 
--- HELPER FUNCTION FOR bestMove
-minimax :: GameState -> Int -> Bool -> Int
-minimax gameState@(player, game) depth isMaximizingPlayer
+--bestMove HELPER
+bestMoveStrategy :: GameState -> Int -> Bool -> Int
+bestMoveStrategy gameState@(player, game) depth isMaximizingPlayer
   | depth == 0 || isGameDecided (winnerOfGame gameState) = evaluateBoard gameState
   | isMaximizingPlayer =
-      maximum [ minimax (makeMove move gameState) (depth - 1) False | move <- getAvailableMoves gameState, legalMove game move ]
+      maximum [bestMoveStrategy (makeMove move gameState) (depth - 1) False | move <- getAvailableMoves gameState]
   | otherwise =
-      minimum [ minimax (makeMove move gameState) (depth - 1) True | move <- getAvailableMoves gameState, legalMove game move ]
-  where
-    isGameDecided :: Maybe Winner -> Bool
-    isGameDecided Nothing = False
-    isGameDecided (Just _) = True
+      minimum [bestMoveStrategy (makeMove move gameState) (depth - 1) True | move <- getAvailableMoves gameState]
 
+-- Function to determine the best move
 bestMove :: GameState -> Move
 bestMove gameState@(player, game) =
-  let initPlayer = player
-      moves = getAvailableMoves gameState
-      moveScores = [(minimax (makeMove move gameState) depth (player /= Red), move) | move <- moves]
-      bestScore
-        | player == Red = maximum moveScores
-        | otherwise = minimum moveScores
-      depth = 5
+  let moves = getAvailableMoves gameState
+      depth = 4
+      moveScores = [(bestMoveStrategy (makeMove move gameState) depth (player == Red), move) | move <- moves]
+      bestScore = if player == Red then maximum moveScores else minimum moveScores
   in snd bestScore
+
+-- bestMove HELPER
+isGameDecided :: Maybe Winner -> Bool
+isGameDecided Nothing = False
+isGameDecided (Just _) = True
 
 
 whoWillWin :: GameState -> Maybe Winner -- checks who will win -- doesn't account for ties

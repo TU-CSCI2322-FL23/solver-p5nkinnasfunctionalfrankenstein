@@ -36,13 +36,13 @@ stringToMove str = read str :: Move
 main :: IO () --might still need to modify load game
 main = do
     args <- getArgs
-    game <- loadGame
+    game <- loadGame 
     processArgs args game
 
 verboseOutput :: GameState -> Move -> IO ()
 verboseOutput game move = do
         rating = rateGame game
-    putStrLn $ "Move: " ++ move
+    putStrLn $ "Move: " ++ move 
     putStrLn $ "Rating: " ++ rating
 
 makeMoveOutput :: GameState -> Move -> IO ()
